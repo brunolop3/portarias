@@ -127,7 +127,7 @@ function ListaCursos() {
               value={busca}
               onChange={(e) => setBusca(e.target.value)}
               placeholder="Buscar por curso ou unidade..."
-              className="w-full pl-8 pr-3 py-2 text-sm rounded-md border bg-white focus:outline-none focus:ring-1 focus:ring-[var(--color-uems-navy)]"
+              className="w-full pl-8 pr-3 py-2 text-sm rounded-md border bg-card focus:outline-none focus:ring-1 focus:ring-[var(--color-uems-navy)]"
               style={{ borderColor: "rgba(26,29,35,0.16)" }}
             />
           </div>
@@ -148,7 +148,7 @@ function ListaCursos() {
               <select
                 value={filtroGrau}
                 onChange={(e) => setFiltroGrau(e.target.value)}
-                className="text-xs rounded-md border bg-white px-2 py-1 focus:outline-none focus:ring-1 focus:ring-[var(--color-uems-navy)]"
+                className="text-xs rounded-md border bg-card px-2 py-1 focus:outline-none focus:ring-1 focus:ring-[var(--color-uems-navy)]"
                 style={{ borderColor: "rgba(26,29,35,0.16)" }}
               >
                 <option value="todos">Todos</option>
@@ -162,7 +162,7 @@ function ListaCursos() {
                 <select
                   value={filtroUnidade}
                   onChange={(e) => setFiltroUnidade(e.target.value)}
-                  className="text-xs rounded-md border bg-white px-2 py-1 max-w-[180px] focus:outline-none focus:ring-1 focus:ring-[var(--color-uems-navy)]"
+                  className="text-xs rounded-md border bg-card px-2 py-1 max-w-[180px] focus:outline-none focus:ring-1 focus:ring-[var(--color-uems-navy)]"
                   style={{ borderColor: "rgba(26,29,35,0.16)" }}
                 >
                   <option value="todas">Todas</option>
@@ -224,7 +224,7 @@ function ListaCursos() {
             const termino = terminoMandato(c.portariaConstituicaoData);
             return (
               <button key={c.id} type="button" onClick={() => setCursoConsultaId(c.id)}
-                className="text-left rounded-md border bg-white p-5 transition-all hover:border-[var(--color-uems-navy)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-uems-navy)]"
+                className="text-left rounded-md border bg-card p-5 transition-all hover:border-[var(--color-uems-navy)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-uems-navy)]"
                 style={{ borderColor: "rgba(26,29,35,0.12)" }}>
                 <div className="flex items-start justify-between gap-3 mb-3">
                   <div className="min-w-0">
@@ -552,7 +552,7 @@ function PaginaCurso({ id, onBack }: { id: string; onBack: () => void }) {
               <li key={p.id} className="relative pl-10 pr-4 py-4 border-b last:border-b-0" style={{ borderColor: "rgba(26,29,35,0.06)" }}>
                 {/* Marcador da timeline */}
                 <span className={cn("absolute left-4 top-5 h-3 w-3 rounded-full border-2",
-                  p.tipo === "Constituição" ? "bg-[var(--color-uems-gold)] border-[var(--color-uems-gold)]" : "bg-white border-[var(--color-uems-navy)]")} />
+                  p.tipo === "Constituição" ? "bg-[var(--color-uems-gold)] border-[var(--color-uems-gold)]" : "bg-card border-[var(--color-uems-navy)]")} />
                 {i < portariasOrdenadas.length - 1 && (
                   <span className="absolute left-[21px] top-9 bottom-0 w-px bg-[rgba(26,29,35,0.12)]" />
                 )}
@@ -633,7 +633,7 @@ function FiltroChip({ label, ativo, onClick }: { label: string; ativo: boolean; 
       className={cn("text-xs px-3 py-1.5 rounded-md border transition-colors",
         ativo
           ? "bg-[var(--color-uems-navy)] text-white border-[var(--color-uems-navy)]"
-          : "bg-white text-[var(--color-ink-muted)] border-[rgba(26,29,35,0.16)] hover:border-[var(--color-uems-navy)]")}>
+          : "bg-card text-[var(--color-ink-muted)] border-[rgba(26,29,35,0.16)] hover:border-[var(--color-uems-navy)]")}>
       {label}
     </button>
   );
@@ -706,7 +706,7 @@ function ActionsMenu({
         <MoreVertical className="h-4 w-4" />
       </Button>
       {aberto && (
-        <div role="menu" className="cge-anim-in absolute right-0 top-full mt-1 w-56 rounded-md border bg-white shadow-md z-20 py-1"
+        <div role="menu" className="cge-anim-in absolute right-0 top-full mt-1 w-56 rounded-md border bg-card shadow-md z-20 py-1"
           style={{ borderColor: "rgba(26,29,35,0.14)" }}>
           <button type="button" role="menuitem"
             onClick={() => { setAberto(false); onToggleStatus(); }}

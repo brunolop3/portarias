@@ -191,7 +191,7 @@ export function MemberDetailsModal({
                                   ? "bg-[#FBF6E6] text-[#8a6d12]"
                                   : p.funcao.includes("Coordenador")
                                   ? "bg-[#E6ECF5] text-[var(--color-uems-navy)]"
-                                  : "bg-white text-[var(--color-ink-muted)]"
+                                  : "bg-card text-[var(--color-ink-muted)]"
                               )}>
                                 {p.funcao}
                               </span>
@@ -236,7 +236,7 @@ export function MemberDetailsModal({
 
 function ResumoCard({ label, valor }: { label: string; valor: number }) {
   return (
-    <div className="rounded-md border p-3 text-center" style={{ borderColor: "rgba(26,29,35,0.1)", background: "white" }}>
+    <div className="rounded-md border p-3 text-center" style={{ borderColor: "rgba(26,29,35,0.1)", background: "var(--card)" }}>
       <p className="font-display text-2xl text-[var(--color-uems-navy)]">{valor}</p>
       <p className="text-[10px] uppercase tracking-wide text-[var(--color-ink-muted)] mt-0.5">{label}</p>
     </div>

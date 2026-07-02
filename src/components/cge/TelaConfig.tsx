@@ -190,14 +190,14 @@ export function TelaConfig() {
               value={buscaAud}
               onChange={(e) => setBuscaAud(e.target.value)}
               placeholder="Buscar na descrição..."
-              className="w-full pl-8 pr-3 py-1.5 text-xs rounded-md border bg-white focus:outline-none focus:ring-1 focus:ring-[var(--color-uems-navy)]"
+              className="w-full pl-8 pr-3 py-1.5 text-xs rounded-md border bg-card focus:outline-none focus:ring-1 focus:ring-[var(--color-uems-navy)]"
               style={{ borderColor: "rgba(26,29,35,0.16)" }}
             />
           </div>
           <select
             value={filtroAcao}
             onChange={(e) => setFiltroAcao(e.target.value)}
-            className="text-xs rounded-md border bg-white px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-[var(--color-uems-navy)]"
+            className="text-xs rounded-md border bg-card px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-[var(--color-uems-navy)]"
             style={{ borderColor: "rgba(26,29,35,0.16)" }}
           >
             <option value="">Todas as ações</option>
@@ -219,7 +219,7 @@ export function TelaConfig() {
           <select
             value={filtroEntidade}
             onChange={(e) => setFiltroEntidade(e.target.value)}
-            className="text-xs rounded-md border bg-white px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-[var(--color-uems-navy)]"
+            className="text-xs rounded-md border bg-card px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-[var(--color-uems-navy)]"
             style={{ borderColor: "rgba(26,29,35,0.16)" }}
           >
             <option value="">Todas as entidades</option>
@@ -232,7 +232,7 @@ export function TelaConfig() {
               type="date"
               value={filtroDataIni}
               onChange={(e) => setFiltroDataIni(e.target.value)}
-              className="text-xs rounded-md border bg-white px-2 py-1.5 font-data focus:outline-none focus:ring-1 focus:ring-[var(--color-uems-navy)]"
+              className="text-xs rounded-md border bg-card px-2 py-1.5 font-data focus:outline-none focus:ring-1 focus:ring-[var(--color-uems-navy)]"
               style={{ borderColor: "rgba(26,29,35,0.16)" }}
               title="Data inicial"
             />
@@ -241,7 +241,7 @@ export function TelaConfig() {
               type="date"
               value={filtroDataFim}
               onChange={(e) => setFiltroDataFim(e.target.value)}
-              className="text-xs rounded-md border bg-white px-2 py-1.5 font-data focus:outline-none focus:ring-1 focus:ring-[var(--color-uems-navy)]"
+              className="text-xs rounded-md border bg-card px-2 py-1.5 font-data focus:outline-none focus:ring-1 focus:ring-[var(--color-uems-navy)]"
               style={{ borderColor: "rgba(26,29,35,0.16)" }}
               title="Data final"
             />
@@ -318,7 +318,7 @@ function corAcao(acao: string): string {
 }
 
 const inputCls =
-  "w-full rounded-md border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[var(--color-uems-navy)] focus:border-[var(--color-uems-navy)] resize-none";
+  "w-full rounded-md border bg-card px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[var(--color-uems-navy)] focus:border-[var(--color-uems-navy)] resize-none";
 
 function Field({
   label,

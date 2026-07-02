@@ -1,7 +1,7 @@
 "use client";
 
 import { useCge, type Area } from "@/lib/cge/store";
-import { FileText, ListChecks, Settings, PlusCircle } from "lucide-react";
+import { FileText, ListChecks, Settings, PlusCircle, BarChart3 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { GlobalSearch } from "@/components/cge/GlobalSearch";
 import { HelpTrigger } from "@/components/cge/HelpOverlay";
@@ -24,6 +24,7 @@ const NAV: NavItem[] = [
   { area: "inicio", label: "Início", icon: FileText },
   { area: "novo", label: "Gerar Portaria", icon: PlusCircle },
   { area: "consultar", label: "Comitês & Histórico", icon: ListChecks },
+  { area: "metricas", label: "Métricas", icon: BarChart3 },
   { area: "config", label: "Configurações", icon: Settings },
 ];
 

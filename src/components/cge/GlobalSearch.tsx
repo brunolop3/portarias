@@ -167,7 +167,7 @@ export function GlobalSearch() {
         onClick={() => setAberto(false)}
       />
       {/* Dialog */}
-      <div className="cge-anim-in relative w-full max-w-xl rounded-md border bg-white shadow-xl overflow-hidden"
+      <div className="cge-anim-in relative w-full max-w-xl rounded-md border bg-card shadow-xl overflow-hidden"
         style={{ borderColor: "rgba(26,29,35,0.14)" }}>
         {/* Input */}
         <div className="flex items-center gap-2 px-4 py-3 border-b" style={{ borderColor: "rgba(26,29,35,0.1)" }}>
@@ -271,9 +271,9 @@ export function GlobalSearch() {
           style={{ borderColor: "rgba(26,29,35,0.08)" }}>
           <span className="flex items-center gap-1">
             <ArrowRight className="h-3 w-3" /> Navegação:
-            <kbd className="font-data bg-white px-1 rounded border" style={{ borderColor: "rgba(26,29,35,0.15)" }}>↑</kbd>
-            <kbd className="font-data bg-white px-1 rounded border" style={{ borderColor: "rgba(26,29,35,0.15)" }}>↓</kbd>
-            <kbd className="font-data bg-white px-1 rounded border" style={{ borderColor: "rgba(26,29,35,0.15)" }}>↵</kbd>
+            <kbd className="font-data bg-card px-1 rounded border" style={{ borderColor: "rgba(26,29,35,0.15)" }}>↑</kbd>
+            <kbd className="font-data bg-card px-1 rounded border" style={{ borderColor: "rgba(26,29,35,0.15)" }}>↓</kbd>
+            <kbd className="font-data bg-card px-1 rounded border" style={{ borderColor: "rgba(26,29,35,0.15)" }}>↵</kbd>
           </span>
           <span>{resultados.length} resultado(s)</span>
         </div>

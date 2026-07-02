@@ -71,7 +71,7 @@ export function HelpOverlay() {
         {teclas.map((t, i) => (
           <span key={i} className="flex items-center gap-1">
             <kbd
-              className="font-data text-xs bg-white border rounded px-1.5 py-0.5 text-[var(--color-ink)] shadow-sm"
+              className="font-data text-xs bg-card border rounded px-1.5 py-0.5 text-[var(--color-ink)] shadow-sm"
               style={{ borderColor: "rgba(26,29,35,0.18)", minWidth: "1.5rem", textAlign: "center" }}
             >
               {t}

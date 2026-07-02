@@ -79,7 +79,7 @@ export function Tela1Escolher() {
           type="button"
           onClick={handleConstituir}
           className={cn(
-            "text-left rounded-md border bg-white p-5 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-uems-navy)]",
+            "text-left rounded-md border bg-card p-5 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-uems-navy)]",
             tipo === "Constituição"
               ? "border-[var(--color-uems-navy)] ring-1 ring-[var(--color-uems-navy)]"
               : "hover:border-[var(--color-uems-navy)]"
@@ -103,7 +103,7 @@ export function Tela1Escolher() {
           type="button"
           onClick={() => setTipo("Alteração")}
           className={cn(
-            "text-left rounded-md border bg-white p-5 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-uems-navy)]",
+            "text-left rounded-md border bg-card p-5 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-uems-navy)]",
             tipo === "Alteração"
               ? "border-[var(--color-uems-navy)] ring-1 ring-[var(--color-uems-navy)]"
               : "hover:border-[var(--color-uems-navy)]"
@@ -152,7 +152,7 @@ export function Tela1Escolher() {
                   value={busca}
                   onChange={(e) => setBusca(e.target.value)}
                   placeholder="Buscar por curso ou unidade..."
-                  className="w-full sm:w-72 pl-8 pr-3 py-2 text-sm rounded-md border bg-white focus:outline-none focus:ring-1 focus:ring-[var(--color-uems-navy)]"
+                  className="w-full sm:w-72 pl-8 pr-3 py-2 text-sm rounded-md border bg-card focus:outline-none focus:ring-1 focus:ring-[var(--color-uems-navy)]"
                   style={{ borderColor: "rgba(26,29,35,0.16)" }}
                 />
               </div>

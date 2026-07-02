@@ -130,6 +130,10 @@
    Modo escuro — paleta institucional adaptada para dark.
    Navy vira um azul-escuro profundo, paper vira um cinza-azulado escuro,
    ink vira branco quente. Acentos dourado e alerta mantêm bom contraste.
+
+   IMPORTANTE: definimos TANTO os tokens --color-* (usados pelo @theme inline)
+   QUANTO os tokens plain (--paper, --ink, etc., usados pelos estilos inline
+   e pelo mapeamento --color-background: var(--paper)).
    ========================================================================= */
 .dark {
   --color-uems-navy: #4A78D8;
@@ -139,6 +143,11 @@
   --color-ink: #E8E6E1;
   --color-ink-muted: #9BA3B0;
   --color-alert: #E5534C;
+
+  /* Tokens plain (lidos por var(--paper) etc. no @theme inline). */
+  --paper: #0F1419;
+  --ink: #E8E6E1;
+  --ink-muted: #9BA3B0;
 
   --background: #0F1419;
   --foreground: #E8E6E1;

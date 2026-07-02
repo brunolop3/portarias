@@ -11,6 +11,7 @@ import { Tela4Geracao } from "@/components/cge/Tela4Geracao";
 import { Tela5Consultar } from "@/components/cge/Tela5Consultar";
 import { TelaConfig } from "@/components/cge/TelaConfig";
 import { TelaAlertas } from "@/components/cge/TelaAlertas";
+import { TelaMetricas } from "@/components/cge/TelaMetricas";
 import { ConfirmProvider } from "@/components/cge/ConfirmDialog";
 import { KeyboardShortcuts } from "@/components/cge/KeyboardShortcuts";
 import { HelpOverlay } from "@/components/cge/HelpOverlay";
@@ -47,6 +48,7 @@ export default function Home() {
         {area === "consultar" && <Tela5Consultar />}
         {area === "config" && <TelaConfig />}
         {area === "alertas" && <TelaAlertas />}
+        {area === "metricas" && <TelaMetricas />}
       </main>
       <AppFooter />
       <ConfirmProvider />

@@ -280,7 +280,7 @@ ${blocos.join("\n")}
         </div>
 
         {/* Corpo da minuta */}
-        <div className="bg-white">
+        <div className="bg-card">
           <pre className="portaria-paper whitespace-pre-wrap font-serif max-h-[60vh] overflow-y-auto scroll-thin"
             style={{ margin: 0, borderRadius: 0 }}>
             {texto}

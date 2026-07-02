@@ -41,7 +41,7 @@ export function Stepper() {
                   "flex h-7 w-7 items-center justify-center rounded-full border text-xs font-data transition-colors",
                   ativa && "bg-[var(--color-uems-navy)] text-white border-[var(--color-uems-navy)]",
                   concluida && "bg-[var(--color-uems-gold)] text-[var(--color-uems-navy-deep)] border-[var(--color-uems-gold)]",
-                  !ativa && !concluida && "bg-white text-[var(--color-ink-muted)] border-[rgba(26,29,35,0.2)]"
+                  !ativa && !concluida && "bg-card text-[var(--color-ink-muted)] border-[rgba(26,29,35,0.2)]"
                 )}
               >
                 {concluida ? <Check className="h-3.5 w-3.5" /> : e.n}

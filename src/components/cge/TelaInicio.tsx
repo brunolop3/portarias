@@ -75,7 +75,7 @@ export function TelaInicio() {
   return (
     <div className="space-y-8">
       {/* Hero institucional */}
-      <section className="rounded-md border bg-white overflow-hidden relative"
+      <section className="rounded-md border bg-card overflow-hidden relative"
         style={{ borderColor: "rgba(26,29,35,0.12)" }}>
         {/* Faixa decorativa lateral navy */}
         <div className="absolute left-0 top-0 bottom-0 w-1.5" style={{ background: "var(--color-uems-navy)" }} />
@@ -502,7 +502,7 @@ function Atalho({
     <button
       type="button"
       onClick={onClick}
-      className="group text-left rounded-md border bg-white p-5 transition-all hover:border-[var(--color-uems-navy)] hover:shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-uems-navy)]"
+      className="group text-left rounded-md border bg-card p-5 transition-all hover:border-[var(--color-uems-navy)] hover:shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-uems-navy)]"
       style={{ borderColor: "rgba(26,29,35,0.12)" }}
     >
       <div className="flex items-center justify-between mb-2">

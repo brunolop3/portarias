@@ -350,7 +350,7 @@ export function Tela2Dados() {
 }
 
 const inputCls =
-  "w-full rounded-md border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[var(--color-uems-navy)] focus:border-[var(--color-uems-navy)]";
+  "w-full rounded-md border bg-card px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[var(--color-uems-navy)] focus:border-[var(--color-uems-navy)]";
 
 function Field({
   label,
@@ -375,7 +375,7 @@ function Field({
 
 function Sugestao({ label, valor }: { label: string; valor?: string }) {
   return (
-    <div className="rounded-md border border-[rgba(26,29,35,0.1)] bg-white p-2.5">
+    <div className="rounded-md border border-[rgba(26,29,35,0.1)] bg-card p-2.5">
       <p className="text-[10px] uppercase tracking-wide text-[var(--color-ink-muted)]">{label}</p>
       <p className="text-sm text-[var(--color-ink)] truncate">{valor || "—"}</p>
     </div>

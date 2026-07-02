@@ -107,7 +107,7 @@ export function Tela3Membros() {
                     value={m.nome}
                     onChange={(e) => atualizarMembro(m.id, { nome: e.target.value })}
                     placeholder="Nome do membro"
-                    className="w-full rounded-md border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[var(--color-uems-navy)]"
+                    className="w-full rounded-md border bg-card px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[var(--color-uems-navy)]"
                     style={{ borderColor: "rgba(26,29,35,0.16)" }}
                   />
                 </div>
@@ -116,7 +116,7 @@ export function Tela3Membros() {
                   <select
                     value={m.funcao}
                     onChange={(e) => atualizarMembro(m.id, { funcao: e.target.value as FuncaoMembro })}
-                    className="w-full rounded-md border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[var(--color-uems-navy)]"
+                    className="w-full rounded-md border bg-card px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[var(--color-uems-navy)]"
                     style={{ borderColor: "rgba(26,29,35,0.16)" }}
                   >
                     {FUNCOES.map((f) => (

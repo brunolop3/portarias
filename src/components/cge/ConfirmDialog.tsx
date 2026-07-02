@@ -122,7 +122,7 @@ export function ConfirmProvider() {
                 value={textoDigitado}
                 onChange={(e) => setTexto(e.target.value)}
                 autoFocus
-                className="w-full rounded-md border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[var(--color-uems-navy)] font-data"
+                className="w-full rounded-md border bg-card px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[var(--color-uems-navy)] font-data"
                 style={{ borderColor: "rgba(26,29,35,0.16)" }}
                 placeholder={exigirDig}
               />

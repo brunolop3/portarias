@@ -328,3 +328,32 @@ Stage Summary:
 - Cabeçalho enriquecido com 4 ações rápidas (busca, alertas, ajuda, tema).
 - Aplicação agora oferece experiência completa em claro e escuro, com alertas proativos de mandatos.
 - Próximas fases sugeridas: importação em lote via CSV, exportação PDF server-side, gráfico de evolução de membros por curso, filtros salvos, acessibilidade (ARRO expanded), PWA.
+
+---
+Task ID: 11
+Agent: webDevReview (cron)
+Task: Ciclo de QA + bug fix crítico (dark mode) + nova feature (página de métricas detalhadas).
+
+Work Log:
+- QA via agent-browser em todas as telas (light + dark). Descoberto BUG CRÍTICO: o dark mode não funcionava de fato.
+- BUG CRÍTICO corrigido: dark mode não aplicava cores escuras.
+  - Causa: o bloco @theme inline mapeia --color-background: var(--paper), mas o bloco .dark definia --color-paper (com prefixo) e --background, não --paper (plain). Assim, var(--paper) resolvia para o valor light do :root.
+  - Fix: bloco .dark agora define TANTO os tokens --color-* QUANTO os tokens plain (--paper, --ink, --ink-muted) que o @theme inline lê via var(--paper).
+  - Adicionalmente: substituí ~25 ocorrências de bg-white por bg-card em todos os componentes (cards, inputs, modais, dropdowns) para que herdem o fundo do tema. Mantive bg-white apenas onde faz sentido (kbd no header navy, etc.).
+  - VLM confirmou: dark mode agora com fundo escuro, cards escuros, sem problemas de contraste. Light mode continua funcionando.
+- Nova feature: Página de Métricas detalhadas (TelaMetricas).
+  - Nova area "metricas" no store e no roteamento.
+  - Item "Métricas" (ícone BarChart3) adicionado à navegação principal do cabeçalho.
+  - 4 KPIs no topo: Comitês (total + ativos), Portarias (total + constituições), Membros em exercício (total + média por comitê), Taxa de alteração (% de alterações sobre total).
+  - Gráfico de evolução temporal expandido (12 meses, barras empilhadas navy/gold, tooltips, legenda, altura maior 192px).
+  - 4 cards de distribuição em grid 2x2: Por unidade (barras navy), Por grau acadêmico (barras gold), Distribuição de funções (donut SVG), Rotatividade de membros (3 números + top 5 ranking).
+  - Lista completa de mandatos próximos do fim (clicáveis, navegam para o curso).
+  - VLM confirmou: 4 KPIs, gráfico, 4 cards, lista de mandatos, visual polido.
+- Verificação: lint 0 erros; agent-browser confirmou dark mode funcionando em todas telas, página de métricas renderizando com todos os elementos. VLM confirmou ambos os temas coerentes.
+
+Stage Summary:
+- BUG CRÍTICO do dark mode corrigido — agora funciona de fato (antes apenas alternava a classe mas as cores não mudavam).
+- Nova feature: página de Métricas detalhadas com KPIs, gráficos expandidos e análises profundas.
+- Navegação agora tem 5 itens: Início, Gerar Portaria, Comitês & Histórico, Métricas, Configurações.
+- Dark mode totalmente polido em todas as telas (cards, inputs, modais, gráficos).
+- Próximas fases sugeridas: importação em lote via CSV, PWA/offline, acessibilidade (ARIA expandido, navegação por teclado em modais), exportação PDF server-side, filtros salvos.

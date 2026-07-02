@@ -184,7 +184,7 @@ ${blocos.join("\n")}
             </Button>
           </div>
         </DialogHeader>
-        <div className="flex-1 overflow-y-auto scroll-thin bg-white">
+        <div className="flex-1 overflow-y-auto scroll-thin bg-card">
           <pre className="portaria-paper whitespace-pre-wrap font-serif" style={{ margin: 0, borderRadius: 0, border: "none" }}>
             {portaria.textoGerado}
           </pre>
