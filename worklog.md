@@ -78,3 +78,36 @@ Stage Summary:
 - UI sem nenhuma logo — apenas o texto "DIGES" dourado (cabeçalho, rodapé e timbre do preview).
 - Documentos de teste (Constituição + Alteração) gerados e conferidos linha a linha (XML + visual).
 - Próxima fase: continuar refinando detalhes e adicionando features conforme cron webDevReview.
+
+---
+Task ID: 3
+Agent: webDevReview (cron)
+Task: Ciclo de QA + novas features + melhorias de styling.
+
+Work Log:
+- QA via agent-browser em todas as telas (Início, Gerar Portaria 1-4, Comitês & Histórico, Configurações).
+- BUG CRÍTICO encontrado e corrigido: ao clicar em "Alterar Comitê existente" na Tela 1, o sistema pulava direto para a Tela 2 sem mostrar a lista de seleção de comitês. Causa: `setTipo` no store sempre definia `etapa: 2`. Correção: `setTipo` agora apenas define o tipo; o avanço de etapa é controlado pelos componentes (Tela 1 avança para Constituição; Alteração fica na Tela 1 para o usuário selecionar o comitê na lista).
+- Nova feature: Dashboard com métricas na Tela Início.
+  - API GET /api/cge/stats: total comitês, por situação (ativo/vencendo/vencido/encerrado), total portarias (constituições + alterações), total membros, distribuição por unidade e por grau, próximos a vencer (<= 90 dias).
+  - TelaInicio reescrita: 4 cards de métrica (comitês, portarias, membros, próximos a vencer), 3 painéis (situação com barras, por unidade com barras, mandatos próximos do fim clicáveis), atalhos com hover, resumo normativo.
+  - Skeleton loading states enquanto busca stats.
+- Nova feature: Encerrar/reativar comitê + excluir comitê + excluir portaria na UI.
+  - ActionsMenu (dropdown "Mais ações") na página do curso: encerrar/reativar (toggle status) e excluir comitê (com dupla confirmação).
+  - Botão de excluir (lixeira) em cada portaria da timeline do histórico.
+  - Handlers conectados às APIs PUT /api/cge/comites/[id] (status) e DELETE /api/cge/portarias/[id] e /api/cge/comites/[id].
+- Nova feature: Exportar minuta em PDF/impressão.
+  - Botão "Imprimir / PDF" na Tela 4: abre janela com HTML formatado (A4, margens 3cm, TNR 12pt, ementa recuo 8cm, corpo recuo 1,5cm, tabela real, assinatura centralizada) e dispara window.print() para salvar como PDF.
+- Melhorias de styling:
+  - globals.css: foco visível (outline navy), seleção de texto (dourado), transições suaves em elementos interativos, animação cge-fade-in para dropdowns, estilos de impressão (@media print esconde header/footer).
+  - Faixa decorativa lateral navy no hero da Tela Início.
+  - Atalhos com seta que aparece no hover.
+  - Scrollbar com hover state.
+- Verificação: lint 0 erros; agent-browser confirmou todas as telas renderizando, actions menu funciona, encerrar/reativar atualiza status, dashboard mostra métricas e barras. VLM confirmou dashboard polido e profissional.
+
+Stage Summary:
+- Bug crítico do fluxo "Alterar" corrigido — lista de seleção agora aparece.
+- Dashboard transformado de simples contagem para painel rico de métricas com 4 cards + 3 painéis de distribuição/alertas.
+- Página do curso agora tem gestão completa: encerrar/reativar/excluir comitê + excluir portaria do histórico.
+- Tela 4 ganha exportação PDF além do .docx.
+- Styling refinado: foco visível, transições, animações de dropdown, print styles.
+- Próxima fase: possíveis features adicionais (busca avançada com filtros combinados, exportar histórico em CSV, dashboard de evolução temporal, validação de nº de portaria duplicado, multi-idioma, etc.).

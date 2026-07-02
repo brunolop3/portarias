@@ -228,6 +228,54 @@
   background: rgba(26, 29, 35, 0.2);
   border-radius: 4px;
 }
+.scroll-thin::-webkit-scrollbar-thumb:hover {
+  background: rgba(26, 29, 35, 0.35);
+}
 .scroll-thin::-webkit-scrollbar-track {
   background: transparent;
 }
+
+/* =========================================================================
+   Refinamentos visuais: foco visível, transições suaves, seleção de texto.
+   ========================================================================= */
+@layer base {
+  :focus-visible {
+    outline: 2px solid var(--color-uems-navy);
+    outline-offset: 2px;
+  }
+  ::selection {
+    background: rgba(200, 168, 75, 0.28);
+    color: var(--color-ink);
+  }
+  /* Transição padrão em elementos interativos (sem fade-in decorativo). */
+  button, a, input, select, textarea {
+    transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease, box-shadow 150ms ease;
+  }
+}
+
+/* Animação sutil de entrada para modais/dropdowns (não em cards estáticos). */
+@keyframes cge-fade-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.cge-anim-in {
+  animation: cge-fade-in 140ms ease-out;
+}
+
+/* =========================================================================
+   Estilos de impressão — ao imprimir a aplicação (Ctrl+P), esconde a
+   navegação e o rodapé, deixando apenas o conteúdo principal.
+   ========================================================================= */
+@media print {
+  header, footer, .no-print {
+    display: none !important;
+  }
+  main {
+    padding: 0 !important;
+    max-width: none !important;
+  }
+  body {
+    background: #FFFFFF !important;
+  }
+}
+

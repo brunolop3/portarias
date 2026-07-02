@@ -3,38 +3,65 @@
 import { useCge } from "@/lib/cge/store";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { PlusCircle, ListChecks, Settings, FileText, BookOpen, ShieldCheck } from "lucide-react";
+import {
+  PlusCircle, ListChecks, Settings, FileText, BookOpen, ShieldCheck,
+  Users, FileStack, TrendingUp, CalendarClock, GraduationCap, Building2,
+  AlertTriangle, ArrowRight, CheckCircle2, Clock, XCircle,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import type { Comite } from "@/lib/cge/types";
+import { dataCurta } from "@/lib/cge/datas";
 
 // ===========================================================================
-// Tela inicial (dashboard). Apresenta o sistema e atalhos para as 3 áreas.
+// Tela inicial (dashboard). Apresenta métricas, atalhos e alertas.
 // ===========================================================================
+
+interface Stats {
+  totalComites: number;
+  porSituacao: Record<string, number>;
+  totalPortarias: number;
+  totalConstituicoes: number;
+  totalAlteracoes: number;
+  totalMembros: number;
+  porUnidade: { unidade: string; total: number }[];
+  porGrau: { grau: string; total: number }[];
+  proximosVencer: {
+    id: string;
+    curso: string;
+    unidade: string;
+    termino: string;
+    dias: number;
+  }[];
+}
 
 export function TelaInicio() {
   const irParaNovo = useCge((s) => s.irParaNovo);
   const irParaConsultar = useCge((s) => s.irParaConsultar);
   const setArea = useCge((s) => s.setArea);
-  const [comites, setComites] = useState<Comite[]>([]);
+  const setCursoConsultaId = useCge((s) => s.setCursoConsultaId);
+  const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/cge/comites")
+    fetch("/api/cge/stats")
       .then((r) => r.json())
       .then((d) => {
-        if (Array.isArray(d)) setComites(d);
+        if (d && !d.error) setStats(d);
       })
       .finally(() => setLoading(false));
   }, []);
 
-  const ativos = comites.filter((c) => c.status === "ativo").length;
+  const situacao = stats?.porSituacao ?? { ativo: 0, vencendo: 0, vencido: 0, encerrado: 0 };
+  const maxUnidade = Math.max(1, ...(stats?.porUnidade.map((u) => u.total) ?? [1]));
 
   return (
     <div className="space-y-8">
       {/* Hero institucional */}
-      <section className="rounded-md border bg-white p-6 sm:p-8"
+      <section className="rounded-md border bg-white p-6 sm:p-8 overflow-hidden relative"
         style={{ borderColor: "rgba(26,29,35,0.12)" }}>
-        <div className="flex flex-col lg:flex-row lg:items-center gap-6">
+        {/* Faixa decorativa lateral navy */}
+        <div className="absolute left-0 top-0 bottom-0 w-1.5" style={{ background: "var(--color-uems-navy)" }} />
+        <div className="flex flex-col lg:flex-row lg:items-center gap-6 pl-2">
           <div className="flex-1 min-w-0">
             <p className="text-xs uppercase tracking-wider text-[var(--color-ink-muted)] mb-2 font-data">
               PROE · DIGES · UEMS
@@ -58,24 +85,141 @@ export function TelaInicio() {
               </Button>
             </div>
           </div>
-          <div className="lg:w-64 flex-shrink-0">
-            <div className="grid grid-cols-2 gap-3">
-              <Card className="p-4 border rounded-md" style={{ borderColor: "rgba(26,29,35,0.12)" }}>
-                <p className="text-xs text-[var(--color-ink-muted)]">Comitês cadastrados</p>
-                <p className="font-display text-3xl text-[var(--color-uems-navy)] mt-1">
-                  {loading ? "—" : comites.length}
-                </p>
-              </Card>
-              <Card className="p-4 border rounded-md" style={{ borderColor: "rgba(26,29,35,0.12)" }}>
-                <p className="text-xs text-[var(--color-ink-muted)]">Ativos</p>
-                <p className="font-display text-3xl text-[var(--color-uems-navy)] mt-1">
-                  {loading ? "—" : ativos}
-                </p>
-              </Card>
-            </div>
-          </div>
         </div>
       </section>
+
+      {/* Painel de métricas */}
+      <section>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="font-display text-lg text-[var(--color-ink)] flex items-center gap-2">
+            <TrendingUp className="h-5 w-5 text-[var(--color-uems-navy)]" />
+            Visão geral
+          </h2>
+          {!loading && stats && (
+            <span className="text-xs text-[var(--color-ink-muted)] font-data">
+              Atualizado agora
+            </span>
+          )}
+        </div>
+
+        {loading ? (
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {[0, 1, 2, 3].map((i) => (
+              <div key={i} className="h-28 rounded-md border animate-pulse bg-[var(--color-muted)]"
+                style={{ borderColor: "rgba(26,29,35,0.08)" }} />
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <MetricCard
+              icon={<Users className="h-5 w-5" />}
+              label="Comitês cadastrados"
+              value={stats?.totalComites ?? 0}
+              hint={`${situacao.ativo} ativos`}
+              tone="navy"
+            />
+            <MetricCard
+              icon={<FileStack className="h-5 w-5" />}
+              label="Portarias geradas"
+              value={stats?.totalPortarias ?? 0}
+              hint={`${stats?.totalConstituicoes ?? 0} constituições · ${stats?.totalAlteracoes ?? 0} alterações`}
+              tone="gold"
+            />
+            <MetricCard
+              icon={<Users className="h-5 w-5" />}
+              label="Membros em exercício"
+              value={stats?.totalMembros ?? 0}
+              hint="Comitês ativos"
+              tone="navy"
+            />
+            <MetricCard
+              icon={<CalendarClock className="h-5 w-5" />}
+              label="Próximos a vencer"
+              value={(stats?.proximosVencer.length ?? 0)}
+              hint="Em até 90 dias"
+              tone={(stats?.proximosVencer.length ?? 0) > 0 ? "alert" : "muted"}
+            />
+          </div>
+        )}
+      </section>
+
+      {/* Distribuições + Alertas */}
+      {!loading && stats && (
+        <section className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          {/* Situação dos comitês */}
+          <Card className="rounded-md border p-5" style={{ borderColor: "rgba(26,29,35,0.12)" }}>
+            <h3 className="font-display text-base text-[var(--color-ink)] mb-4">Situação dos comitês</h3>
+            <div className="space-y-3">
+              <SituacaoBar label="Ativos" valor={situacao.ativo} total={stats.totalComites} cor="#1f6b3a" />
+              <SituacaoBar label="Vencendo" valor={situacao.vencendo} total={stats.totalComites} cor="#8a6d12" />
+              <SituacaoBar label="Vencidos" valor={situacao.vencido} total={stats.totalComites} cor="var(--color-alert)" />
+              <SituacaoBar label="Encerrados" valor={situacao.encerrado} total={stats.totalComites} cor="var(--color-ink-muted)" />
+            </div>
+          </Card>
+
+          {/* Por unidade */}
+          <Card className="rounded-md border p-5" style={{ borderColor: "rgba(26,29,35,0.12)" }}>
+            <h3 className="font-display text-base text-[var(--color-ink)] mb-4 flex items-center gap-2">
+              <Building2 className="h-4 w-4 text-[var(--color-uems-navy)]" />
+              Por unidade universitária
+            </h3>
+            {stats.porUnidade.length === 0 ? (
+              <EmptyMini text="Nenhuma unidade cadastrada." />
+            ) : (
+              <div className="space-y-2.5">
+                {stats.porUnidade.slice(0, 5).map((u) => (
+                  <div key={u.unidade}>
+                    <div className="flex items-center justify-between text-sm mb-1">
+                      <span className="text-[var(--color-ink)] truncate">{u.unidade}</span>
+                      <span className="font-data text-[var(--color-ink-muted)] ml-2">{u.total}</span>
+                    </div>
+                    <div className="h-1.5 rounded-full bg-[var(--color-muted)] overflow-hidden">
+                      <div className="h-full rounded-full transition-all"
+                        style={{ width: `${(u.total / maxUnidade) * 100}%`, background: "var(--color-uems-navy)" }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </Card>
+
+          {/* Próximos a vencer */}
+          <Card className="rounded-md border p-5" style={{ borderColor: "rgba(26,29,35,0.12)" }}>
+            <h3 className="font-display text-base text-[var(--color-ink)] mb-4 flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4 text-[#8a6d12]" />
+              Mandatos próximos do fim
+            </h3>
+            {stats.proximosVencer.length === 0 ? (
+              <EmptyMini text="Nenhum mandato vence nos próximos 90 dias." icon={<CheckCircle2 className="h-5 w-5 text-[#1f6b3a] mb-1.5" />} />
+            ) : (
+              <ul className="space-y-2.5">
+                {stats.proximosVencer.map((p) => (
+                  <li key={p.id}>
+                    <button
+                      type="button"
+                      onClick={() => { setCursoConsultaId(p.id); irParaConsultar(); }}
+                      className="w-full text-left rounded-md border border-[rgba(26,29,35,0.1)] bg-[var(--color-paper)] p-3 hover:border-[var(--color-uems-navy)] transition-colors"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium text-[var(--color-ink)] truncate">{p.curso}</p>
+                          <p className="text-xs text-[var(--color-ink-muted)] truncate">{p.unidade}</p>
+                        </div>
+                        <span className="text-xs font-data text-[#8a6d12] whitespace-nowrap bg-[#FBF6E6] px-2 py-0.5 rounded">
+                          {p.dias}d
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-[var(--color-ink-muted)] mt-1 font-data">
+                        Término: {dataCurta(p.termino)}
+                      </p>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Card>
+        </section>
+      )}
 
       {/* Atalhos */}
       <section>
@@ -122,6 +266,63 @@ export function TelaInicio() {
   );
 }
 
+// ---- Subcomponentes --------------------------------------------------------
+
+function MetricCard({
+  icon,
+  label,
+  value,
+  hint,
+  tone,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: number;
+  hint?: string;
+  tone: "navy" | "gold" | "alert" | "muted";
+}) {
+  const toneCls = {
+    navy: "text-[var(--color-uems-navy)]",
+    gold: "text-[#8a6d12]",
+    alert: "text-[var(--color-alert)]",
+    muted: "text-[var(--color-ink-muted)]",
+  }[tone];
+  return (
+    <Card className="rounded-md border p-4 relative overflow-hidden" style={{ borderColor: "rgba(26,29,35,0.12)" }}>
+      <div className="flex items-start justify-between mb-2">
+        <span className="text-xs text-[var(--color-ink-muted)] uppercase tracking-wide">{label}</span>
+        <span className={toneCls}>{icon}</span>
+      </div>
+      <p className={`font-display text-3xl ${toneCls}`}>{value}</p>
+      {hint && <p className="text-[11px] text-[var(--color-ink-muted)] mt-1 truncate">{hint}</p>}
+    </Card>
+  );
+}
+
+function SituacaoBar({ label, valor, total, cor }: { label: string; valor: number; total: number; cor: string }) {
+  const pct = total > 0 ? (valor / total) * 100 : 0;
+  return (
+    <div>
+      <div className="flex items-center justify-between text-sm mb-1.5">
+        <span className="text-[var(--color-ink)]">{label}</span>
+        <span className="font-data text-[var(--color-ink-muted)]">{valor}</span>
+      </div>
+      <div className="h-2 rounded-full bg-[var(--color-muted)] overflow-hidden">
+        <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, background: cor }} />
+      </div>
+    </div>
+  );
+}
+
+function EmptyMini({ text, icon }: { text: string; icon?: React.ReactNode }) {
+  return (
+    <div className="flex flex-col items-center justify-center py-4 text-center">
+      {icon}
+      <p className="text-xs text-[var(--color-ink-muted)]">{text}</p>
+    </div>
+  );
+}
+
 function Atalho({
   icon,
   titulo,
@@ -137,12 +338,15 @@ function Atalho({
     <button
       type="button"
       onClick={onClick}
-      className="text-left rounded-md border bg-white p-5 transition-colors hover:border-[var(--color-uems-navy)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-uems-navy)]"
+      className="group text-left rounded-md border bg-white p-5 transition-all hover:border-[var(--color-uems-navy)] hover:shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-uems-navy)]"
       style={{ borderColor: "rgba(26,29,35,0.12)" }}
     >
-      <div className="flex items-center gap-2 text-[var(--color-uems-navy)] mb-2">
-        {icon}
-        <span className="font-display text-base text-[var(--color-ink)]">{titulo}</span>
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-2 text-[var(--color-uems-navy)]">
+          {icon}
+          <span className="font-display text-base text-[var(--color-ink)]">{titulo}</span>
+        </div>
+        <ArrowRight className="h-4 w-4 text-[var(--color-ink-muted)] opacity-0 group-hover:opacity-100 transition-opacity" />
       </div>
       <p className="text-sm text-[var(--color-ink-muted)] leading-relaxed">{desc}</p>
     </button>

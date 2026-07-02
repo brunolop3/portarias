@@ -58,6 +58,12 @@ export function Tela1Escolher() {
     setEtapa(2);
   }
 
+  // Para Constituição: define o tipo e avança direto para a Tela 2.
+  function handleConstituir() {
+    setTipo("Constituição");
+    setEtapa(2);
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -71,7 +77,7 @@ export function Tela1Escolher() {
         {/* Constituir */}
         <button
           type="button"
-          onClick={() => setTipo("Constituição")}
+          onClick={handleConstituir}
           className={cn(
             "text-left rounded-md border bg-white p-5 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-uems-navy)]",
             tipo === "Constituição"

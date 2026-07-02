@@ -3,8 +3,12 @@
 import { useCge } from "@/lib/cge/store";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Search, ChevronRight, ChevronLeft, ArrowLeft, Users, FileText, Download, Calendar, History, UserCheck, AlertTriangle, Building2, GraduationCap } from "lucide-react";
-import { useEffect, useState } from "react";
+import {
+  Search, ChevronRight, ChevronLeft, ArrowLeft, Users, FileText, Download,
+  Calendar, History, UserCheck, AlertTriangle, Building2, GraduationCap,
+  MoreVertical, Pause, Play, Trash2, Copy,
+} from "lucide-react";
+import { useEffect, useState, useRef } from "react";
 import { toast } from "sonner";
 import type { Comite, PortariaGerada } from "@/lib/cge/types";
 import { dataCurta, dataPorExtenso, diasParaTermino, situacaoDoComite, terminoMandato } from "@/lib/cge/datas";
@@ -236,6 +240,62 @@ function PaginaCurso({ id, onBack }: { id: string; onBack: () => void }) {
     }
   }
 
+  // Encerra (pausa) ou reativa o comitê. Apenas altera o status — não apaga
+  // dados nem histórico, que permanecem disponíveis para consulta.
+  async function toggleStatusComite() {
+    if (!data) return;
+    const novoStatus = data.comite.status === "ativo" ? "encerrado" : "ativo";
+    if (novoStatus === "encerrado" &&
+      !confirm(`Encerrar este comitê? O histórico será mantido, mas o comitê sairá da contagem de ativos. Esta ação pode ser desfeita.`)) {
+      return;
+    }
+    try {
+      const r = await fetch(`/api/cge/comites/${data.comite.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ membros: data.comite.membros, status: novoStatus }),
+      });
+      if (!r.ok) {
+        const e = await r.json().catch(() => ({}));
+        throw new Error(e.error || "Falha ao atualizar status.");
+      }
+      const atualizado = await r.json();
+      setData({ ...data, comite: atualizado });
+      toast.success(novoStatus === "encerrado" ? "Comitê encerrado." : "Comitê reativado.");
+    } catch (e) {
+      toast.error("Erro: " + (e as Error).message);
+    }
+  }
+
+  // Exclui uma portaria do histórico. Pede confirmação. Não recria/remove
+  // o comitê — apenas remove o registro de log.
+  async function excluirPortaria(p: PortariaGerada) {
+    if (!confirm(`Excluir a Portaria n.º ${p.numeroPortaria} do histórico? Esta ação não pode ser desfeita.`)) return;
+    try {
+      const r = await fetch(`/api/cge/portarias/${p.id}`, { method: "DELETE" });
+      if (!r.ok) throw new Error("Falha ao excluir.");
+      setData((d) => d ? { ...d, portarias: d.portarias.filter((x) => x.id !== p.id) } : d);
+      toast.success("Portaria excluída do histórico.");
+    } catch (e) {
+      toast.error("Erro: " + (e as Error).message);
+    }
+  }
+
+  // Exclui o comitê inteiro (com cascata de membros e portarias).
+  async function excluirComite() {
+    if (!data) return;
+    if (!confirm(`Excluir DEFINITIVAMENTE o comitê de ${data.comite.curso}? Todos os membros e o histórico de portarias serão removidos. Esta ação NÃO pode ser desfeita.`)) return;
+    if (!confirm("Confirma novamente: esta operação apaga todos os dados deste comitê.")) return;
+    try {
+      const r = await fetch(`/api/cge/comites/${data.comite.id}`, { method: "DELETE" });
+      if (!r.ok) throw new Error("Falha ao excluir comitê.");
+      toast.success("Comitê excluído.");
+      onBack();
+    } catch (e) {
+      toast.error("Erro: " + (e as Error).message);
+    }
+  }
+
   if (loading) {
     return <div className="p-10 text-center text-sm text-[var(--color-ink-muted)]">Carregando curso...</div>;
   }
@@ -277,6 +337,11 @@ function PaginaCurso({ id, onBack }: { id: string; onBack: () => void }) {
               className="bg-[var(--color-uems-navy)] hover:bg-[var(--color-uems-navy-deep)] text-white">
               <FileText className="h-4 w-4 mr-1" /> Alterar este comitê
             </Button>
+            <ActionsMenu
+              status={comite.status}
+              onToggleStatus={toggleStatusComite}
+              onExcluir={excluirComite}
+            />
           </div>
         </div>
       </div>
@@ -384,13 +449,18 @@ function PaginaCurso({ id, onBack }: { id: string; onBack: () => void }) {
                       ))}
                     </div>
                   </div>
-                  <div className="flex gap-2 flex-shrink-0">
+                  <div className="flex gap-2 flex-shrink-0 items-center">
                     <Button size="sm" variant="outline" onClick={() => copiarTexto(p)} className="border-[rgba(26,29,35,0.2)] h-8">
-                      <FileText className="h-3.5 w-3.5 mr-1" /> Copiar minuta
+                      <Copy className="h-3.5 w-3.5 mr-1" /> Copiar
                     </Button>
                     <Button size="sm" variant="outline" onClick={() => baixarCi(p)} disabled={!p.ciArquivoNome}
                       className="border-[rgba(26,29,35,0.2)] h-8 disabled:opacity-40">
                       <Download className="h-3.5 w-3.5 mr-1" /> CI
+                    </Button>
+                    <Button size="sm" variant="ghost" onClick={() => excluirPortaria(p)}
+                      className="h-8 w-8 p-0 text-[var(--color-ink-muted)] hover:text-[var(--color-alert)] hover:bg-[var(--color-alert)]/10"
+                      aria-label="Excluir portaria do histórico" title="Excluir do histórico">
+                      <Trash2 className="h-3.5 w-3.5" />
                     </Button>
                   </div>
                 </div>
@@ -448,6 +518,57 @@ function ResumoLinha({ label, valor }: { label: string; valor: string }) {
     <div className="flex items-center justify-between">
       <span className="text-[var(--color-ink-muted)]">{label}</span>
       <span className="font-data font-medium text-[var(--color-ink)]">{valor}</span>
+    </div>
+  );
+}
+
+// Menu de ações do comitê (encerrar/reativar + excluir). Fecha ao clicar fora.
+function ActionsMenu({
+  status,
+  onToggleStatus,
+  onExcluir,
+}: {
+  status: string;
+  onToggleStatus: () => void;
+  onExcluir: () => void;
+}) {
+  const [aberto, setAberto] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!aberto) return;
+    function handler(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setAberto(false);
+    }
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [aberto]);
+
+  const ativo = status === "ativo";
+
+  return (
+    <div className="relative" ref={ref}>
+      <Button size="sm" variant="outline" onClick={() => setAberto((v) => !v)}
+        className="border-[rgba(26,29,35,0.2)] h-8 w-8 p-0"
+        aria-label="Mais ações" aria-haspopup="menu" aria-expanded={aberto}>
+        <MoreVertical className="h-4 w-4" />
+      </Button>
+      {aberto && (
+        <div role="menu" className="cge-anim-in absolute right-0 top-full mt-1 w-56 rounded-md border bg-white shadow-md z-20 py-1"
+          style={{ borderColor: "rgba(26,29,35,0.14)" }}>
+          <button type="button" role="menuitem"
+            onClick={() => { setAberto(false); onToggleStatus(); }}
+            className="w-full text-left px-3 py-2 text-sm flex items-center gap-2 hover:bg-[var(--color-paper)] text-[var(--color-ink)]">
+            {ativo ? <><Pause className="h-4 w-4" /> Encerrar comitê</> : <><Play className="h-4 w-4" /> Reativar comitê</>}
+          </button>
+          <div className="h-px bg-[rgba(26,29,35,0.08)] my-1" />
+          <button type="button" role="menuitem"
+            onClick={() => { setAberto(false); onExcluir(); }}
+            className="w-full text-left px-3 py-2 text-sm flex items-center gap-2 hover:bg-[var(--color-alert)]/10 text-[var(--color-alert)]">
+            <Trash2 className="h-4 w-4" /> Excluir comitê
+          </button>
+        </div>
+      )}
     </div>
   );
 }

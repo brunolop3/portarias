@@ -3,7 +3,7 @@
 import { useCge } from "@/lib/cge/store";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ChevronLeft, Copy, Download, Save, FileText, RefreshCw, CheckCircle2, AlertCircle } from "lucide-react";
+import { ChevronLeft, Copy, Download, Save, FileText, RefreshCw, CheckCircle2, AlertCircle, Printer } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { gerarMinutaTexto } from "@/lib/cge/templates";
@@ -97,6 +97,84 @@ export function Tela4Geracao() {
     }
   }
 
+  // Abre a minuta em uma janela de impressão formatada (papel timbrado),
+  // permitindo salvar como PDF via o diálogo de impressão do navegador.
+  function imprimirPdf() {
+    if (!payload) return;
+    const w = window.open("", "_blank", "width=820,height=1000");
+    if (!w) {
+      toast.error("Pop-up bloqueado. Permita pop-ups para imprimir/PDF.");
+      return;
+    }
+    // Constrói o corpo: linhas comuns viram <p>, blocos de " | " viram <table>.
+    const linhas = texto.split("\n");
+    const blocos: string[] = [];
+    let tabela: string[] = [];
+    function flushTabela() {
+      if (tabela.length === 0) return;
+      const rows = tabela.map((linha) => {
+        const [nome, funcao] = linha.split(" | ");
+        return `<tr><td>${esc(nome || "")}</td><td>${esc(funcao || "")}</td></tr>`;
+      }).join("");
+      blocos.push(`<table><thead><tr><th>Nome do integrante</th><th>Função</th></tr></thead><tbody>${rows}</tbody></table>`);
+      tabela = [];
+    }
+    for (const linha of linhas) {
+      const t = linha.trim();
+      if (!t) continue;
+      if (t.includes(" | ")) {
+        tabela.push(t);
+        continue;
+      }
+      flushTabela();
+      if (t.startsWith("PORTARIA PROE-UEMS")) blocos.push(`<p class="titulo">${esc(t)}</p>`);
+      else if (t.startsWith("Constitui o Comitê") || t.startsWith("Altera os membros")) blocos.push(`<p class="ementa">${esc(t)}</p>`);
+      else if (t === "RESOLVE:") blocos.push(`<p class="corpo resolve">${esc(t)}</p>`);
+      else blocos.push(`<p class="corpo">${esc(t)}</p>`);
+    }
+    flushTabela();
+
+    const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"/>
+<title>Portaria PROE-UEMS n.º ${payload.numeroPortaria}</title>
+<style>
+  @page { size: A4; margin: 3cm; }
+  * { box-sizing: border-box; }
+  body { font-family: "Times New Roman", Georgia, serif; font-size: 12pt; color: #1A1D23; line-height: 1.5; margin: 0; }
+  .timbre { text-align: center; margin-bottom: 1.2rem; }
+  .timbre p { margin: 0; }
+  .timbre .u { font-weight: bold; }
+  .titulo { font-weight: bold; text-align: left; margin: 1rem 0 0.8rem 0; }
+  .ementa { margin-left: 8cm; text-align: justify; margin-bottom: 0.8rem; }
+  .corpo { text-align: justify; text-indent: 1.5cm; margin: 0 0 0.6rem 0; }
+  .resolve { font-weight: bold; }
+  table { width: 100%; border-collapse: collapse; margin: 0.4rem 0 0.8rem 0; }
+  th, td { border: 1px solid #888; padding: 0.3rem 0.5rem; font-size: 11pt; text-align: left; }
+  th { background: #F2F2EE; font-weight: bold; }
+  .ass { text-align: center; margin-top: 1.6rem; }
+  .ass .nome { font-weight: bold; text-transform: uppercase; }
+</style></head><body>
+<div class="timbre">
+  <p class="u">UNIVERSIDADE ESTADUAL DE MATO GROSSO DO SUL</p>
+  <p>PRÓ-REITORIA DE ENSINO — PROE</p>
+  <p>DIRETORIA DE GESTÃO DO ENSINO — DIGES</p>
+</div>
+${blocos.join("\n")}
+<div class="ass">
+  <p class="nome">${esc(payload.configuracao?.nomeSignatario || "")}</p>
+  <p class="cargo">${esc(payload.configuracao?.cargoSignatario || "")}</p>
+</div>
+<script>window.onload = function(){ setTimeout(function(){ window.print(); }, 300); };</script>
+</body></html>`;
+    w.document.open();
+    w.document.write(html);
+    w.document.close();
+    toast.success("Janela de impressão aberta. Use 'Salvar como PDF' no diálogo.");
+  }
+
+  function esc(s: string): string {
+    return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+
   async function salvar() {
     if (!payload) return;
     setSalvando(true);
@@ -160,6 +238,9 @@ export function Tela4Geracao() {
           </Button>
           <Button variant="outline" onClick={baixarDocx} className="border-[rgba(26,29,35,0.2)]">
             <Download className="h-4 w-4 mr-1.5" /> Baixar .docx
+          </Button>
+          <Button variant="outline" onClick={imprimirPdf} className="border-[rgba(26,29,35,0.2)]">
+            <Printer className="h-4 w-4 mr-1.5" /> Imprimir / PDF
           </Button>
           <Button
             onClick={salvar}

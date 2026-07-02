@@ -117,7 +117,10 @@ export const useCge = create<CgeState>((set, get) => ({
   irParaConsultar: () => set({ area: "consultar", cursoConsultaId: null }),
   setEtapa: (e) => set({ etapa: e }),
 
-  setTipo: (t) => set({ tipo: t, etapa: 2 }),
+  // setTipo apenas define o tipo. O avanço de etapa é controlado pelos
+  // componentes (Tela 1 avança para Constituição; Alteração fica na Tela 1
+  // para o usuário selecionar o comitê na lista).
+  setTipo: (t) => set({ tipo: t }),
   selecionarComite: (c) => {
     if (!c) {
       set({
