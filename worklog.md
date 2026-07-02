@@ -143,3 +143,33 @@ Stage Summary:
 - 3 features novas: validação de duplicidade em tempo real, filtros combinados avançados, exportação CSV.
 - Header refinado: sticky, faixa dourada de acento, ícones com feedback.
 - Próximas fases sugeridas: dashboard de evolução temporal (gráfico de portarias por mês), busca global, modal de detalhes da portaria ao clicar na timeline, atalhos de teclado, importação em lote via CSV.
+
+---
+Task ID: 5
+Agent: webDevReview (cron)
+Task: Ciclo de QA + 3 novas features (modal visualizar, gráfico temporal, busca global Ctrl+K).
+
+Work Log:
+- QA via agent-browser em todas as telas. Aplicação estável, sem bugs críticos. VLM identificou oportunidade: faltava "Visualizar minuta" no histórico (só havia copiar/baixar CI).
+- Nova feature: Modal de visualização da minuta completa.
+  - Componente PortariaViewerModal: dialog (Radix) com cabeçalho (tipo, nº, data, CI, membros), botões Copiar/.docx/Imprimir-PDF, e corpo com o textoGerado em estilo "papel timbrado" (serifada, pre formatado).
+  - Botão "Visualizar" (navy, ícone Eye) adicionado na timeline do histórico de cada portaria.
+  - Botões Copiar/CI enxugados para ícones-only (com sr-only labels) para dar destaque ao Visualizar.
+  - Imprimir gera janela HTML formatada (A4, 3cm, TNR 12pt, ementa 8cm, corpo 1,5cm, tabela real, assinatura centralizada) e dispara window.print().
+  - Testado: modal abre, mostra texto completo com scroll, botões funcionam, fecha com Esc/X.
+- Nova feature: Dashboard de evolução temporal (gráfico de portarias por mês).
+  - API /api/cge/stats estendida com evolucaoMensal: 12 meses (incluindo atual), agrupados por tipo (constituições + alterações).
+  - Componente ChartEvolucao (CSS puro, sem dependência): barras empilhadas navy (constituições) + dourado (alterações), tooltip no hover, labels de meses, legenda, resumo com total. Empty state quando não há dados.
+  - Adicionado na Tela Início abaixo das distribuições.
+  - Testado: 12 meses exibidos, 2 constituições em jul/26 visíveis, tooltip funciona, legenda correta.
+- Nova feature: Busca global com atalho Ctrl+K (command palette style).
+  - Componente GlobalSearch: botão "Buscar… ⌘K" no cabeçalho, dialog sobreposto com backdrop, input com foco automático, busca simultânea em comitês (curso/unidade) e portarias (nº/CI/curso), resultados com ícones e badges de tipo, navegação por teclado (↑↓↵), navegação direto para a página do curso ao selecionar.
+  - Atalho Ctrl+K (ou Cmd+K) abre/fecha; Esc fecha.
+  - Bug corrigido: selecionar resultado chamava irParaConsultar() que resetava cursoConsultaId para null — trocado por useCge.setState({ area: "consultar" }) para preservar o curso selecionado.
+  - Testado: Ctrl+K abre, busca "Medicina" retorna comitê + portaria, click navega direto para a página do curso.
+- Verificação: lint 0 erros; agent-browser confirmou todas as features (modal, gráfico, busca global com navegação por teclado e seleção). VLM confirmou modal polido e gráfico profissional.
+
+Stage Summary:
+- 3 features novas: modal de visualização da minuta, gráfico de evolução temporal, busca global Ctrl+K.
+- Aplicação estável e mais completa — agora é possível visualizar qualquer portaria do histórico sem precisar copiar, ver tendência temporal de geração, e buscar rapidamente de qualquer tela.
+- Próximas fases sugeridas: importação em lote via CSV, atalhos de teclado adicionais (n=novo, /=buscar), modal de confirmação custom (substituindo confirm()), exportação de minuta em PDF server-side, dashboard de membros (rotatividade).

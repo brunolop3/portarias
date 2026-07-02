@@ -32,6 +32,12 @@ interface Stats {
     termino: string;
     dias: number;
   }[];
+  evolucaoMensal: {
+    chave: string;
+    label: string;
+    constituicoes: number;
+    alteracoes: number;
+  }[];
 }
 
 export function TelaInicio() {
@@ -221,6 +227,31 @@ export function TelaInicio() {
         </section>
       )}
 
+      {/* Evolução temporal — portarias por mês (últimos 12 meses) */}
+      {!loading && stats && (
+        <section>
+          <Card className="rounded-md border p-5" style={{ borderColor: "rgba(26,29,35,0.12)" }}>
+            <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+              <h3 className="font-display text-base text-[var(--color-ink)] flex items-center gap-2">
+                <TrendingUp className="h-4 w-4 text-[var(--color-uems-navy)]" />
+                Portarias geradas por mês
+              </h3>
+              <div className="flex items-center gap-4 text-xs">
+                <span className="flex items-center gap-1.5">
+                  <span className="inline-block h-2.5 w-2.5 rounded-sm" style={{ background: "var(--color-uems-navy)" }} />
+                  <span className="text-[var(--color-ink-muted)]">Constituições</span>
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="inline-block h-2.5 w-2.5 rounded-sm" style={{ background: "var(--color-uems-gold)" }} />
+                  <span className="text-[var(--color-ink-muted)]">Alterações</span>
+                </span>
+              </div>
+            </div>
+            <ChartEvolucao dados={stats.evolucaoMensal} />
+          </Card>
+        </section>
+      )}
+
       {/* Atalhos */}
       <section>
         <h2 className="font-display text-lg text-[var(--color-ink)] mb-4">Atalhos</h2>
@@ -350,5 +381,90 @@ function Atalho({
       </div>
       <p className="text-sm text-[var(--color-ink-muted)] leading-relaxed">{desc}</p>
     </button>
+  );
+}
+
+// Gráfico de barras empilhadas (CSS puro, sem dependência externa) mostrando
+// constituições + alterações por mês. Tooltip no hover mostra os valores.
+function ChartEvolucao({
+  dados,
+}: {
+  dados: { chave: string; label: string; constituicoes: number; alteracoes: number }[];
+}) {
+  const max = Math.max(1, ...dados.map((d) => d.constituicoes + d.alteracoes));
+  const totalCons = dados.reduce((a, d) => a + d.constituicoes, 0);
+  const totalAlt = dados.reduce((a, d) => a + d.alteracoes, 0);
+  const vazio = totalCons + totalAlt === 0;
+
+  if (vazio) {
+    return (
+      <div className="flex flex-col items-center justify-center py-8 text-center">
+        <CheckCircle2 className="h-6 w-6 text-[var(--color-ink-muted)]/40 mb-2" />
+        <p className="text-sm text-[var(--color-ink-muted)]">
+          Nenhuma portaria gerada nos últimos 12 meses.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      {/* Barras */}
+      <div className="flex items-end justify-between gap-1 sm:gap-2 h-40 mb-2">
+        {dados.map((d) => {
+          const total = d.constituicoes + d.alteracoes;
+          const alturaCons = (d.constituicoes / max) * 100;
+          const alturaAlt = (d.alteracoes / max) * 100;
+          const haDados = total > 0;
+          return (
+            <div key={d.chave} className="flex-1 flex flex-col items-center justify-end h-full group relative">
+              {/* Tooltip */}
+              {haDados && (
+                <div className="absolute -top-12 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                  <div className="bg-[var(--color-ink)] text-white text-[11px] rounded px-2 py-1 whitespace-nowrap shadow-md">
+                    <div>{d.constituicoes} constit.</div>
+                    <div>{d.alteracoes} alter.</div>
+                  </div>
+                </div>
+              )}
+              <div className="w-full max-w-[28px] flex flex-col justify-end h-full" style={{ minHeight: "2px" }}>
+                {d.alteracoes > 0 && (
+                  <div className="w-full rounded-t-sm transition-all duration-300"
+                    style={{ height: `${alturaAlt}%`, background: "var(--color-uems-gold)" }} />
+                )}
+                {d.constituicoes > 0 && (
+                  <div className="w-full transition-all duration-300"
+                    style={{
+                      height: `${alturaCons}%`,
+                      background: "var(--color-uems-navy)",
+                      borderTopLeftRadius: d.alteracoes > 0 ? 0 : "2px",
+                      borderTopRightRadius: d.alteracoes > 0 ? 0 : "2px",
+                    }} />
+                )}
+                {!haDados && (
+                  <div className="w-full" style={{ height: "2px", background: "rgba(26,29,35,0.08)" }} />
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      {/* Labels dos meses */}
+      <div className="flex items-center justify-between gap-1 sm:gap-2 border-t pt-2" style={{ borderColor: "rgba(26,29,35,0.08)" }}>
+        {dados.map((d) => (
+          <div key={d.chave} className="flex-1 text-center">
+            <span className="text-[10px] text-[var(--color-ink-muted)] font-data">{d.label}</span>
+          </div>
+        ))}
+      </div>
+      {/* Resumo */}
+      <div className="mt-3 pt-3 border-t flex items-center justify-between text-xs text-[var(--color-ink-muted)]" style={{ borderColor: "rgba(26,29,35,0.08)" }}>
+        <span>Últimos 12 meses</span>
+        <span>
+          Total: <strong className="text-[var(--color-ink)] font-data">{totalCons + totalAlt}</strong>{" "}
+          ({totalCons} constituições · {totalAlt} alterações)
+        </span>
+      </div>
+    </div>
   );
 }

@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import {
   Search, ChevronRight, ChevronLeft, ArrowLeft, Users, FileText, Download,
   Calendar, History, UserCheck, AlertTriangle, Building2, GraduationCap,
-  MoreVertical, Pause, Play, Trash2, Copy,
+  MoreVertical, Pause, Play, Trash2, Copy, Eye,
 } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import { toast } from "sonner";
@@ -14,6 +14,7 @@ import type { Comite, PortariaGerada } from "@/lib/cge/types";
 import { dataCurta, dataPorExtenso, diasParaTermino, situacaoDoComite, terminoMandato } from "@/lib/cge/datas";
 import { ordenarMembrosParaTabela } from "@/lib/cge/quorum";
 import { cn } from "@/lib/utils";
+import { PortariaViewerModal } from "@/components/cge/PortariaViewerModal";
 
 // ===========================================================================
 // Tela 5 — Consulta de comitês e histórico.
@@ -276,6 +277,8 @@ function PaginaCurso({ id, onBack }: { id: string; onBack: () => void }) {
   const [data, setData] = useState<{ comite: Comite; portarias: PortariaGerada[] } | null>(null);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
+  // Portaria selecionada para visualização no modal.
+  const [portariaView, setPortariaView] = useState<PortariaGerada | null>(null);
 
   useEffect(() => {
     fetch(`/api/cge/comites/${id}`)
@@ -542,12 +545,18 @@ function PaginaCurso({ id, onBack }: { id: string; onBack: () => void }) {
                     </div>
                   </div>
                   <div className="flex gap-2 flex-shrink-0 items-center">
+                    <Button size="sm" onClick={() => setPortariaView(p)}
+                      className="bg-[var(--color-uems-navy)] hover:bg-[var(--color-uems-navy-deep)] text-white h-8">
+                      <Eye className="h-3.5 w-3.5 mr-1" /> Visualizar
+                    </Button>
                     <Button size="sm" variant="outline" onClick={() => copiarTexto(p)} className="border-[rgba(26,29,35,0.2)] h-8">
-                      <Copy className="h-3.5 w-3.5 mr-1" /> Copiar
+                      <Copy className="h-3.5 w-3.5" />
+                      <span className="sr-only">Copiar minuta</span>
                     </Button>
                     <Button size="sm" variant="outline" onClick={() => baixarCi(p)} disabled={!p.ciArquivoNome}
-                      className="border-[rgba(26,29,35,0.2)] h-8 disabled:opacity-40">
-                      <Download className="h-3.5 w-3.5 mr-1" /> CI
+                      className="border-[rgba(26,29,35,0.2)] h-8 disabled:opacity-40" title="Baixar CI">
+                      <Download className="h-3.5 w-3.5" />
+                      <span className="sr-only">Baixar CI</span>
                     </Button>
                     <Button size="sm" variant="ghost" onClick={() => excluirPortaria(p)}
                       className="h-8 w-8 p-0 text-[var(--color-ink-muted)] hover:text-[var(--color-alert)] hover:bg-[var(--color-alert)]/10"
@@ -561,6 +570,13 @@ function PaginaCurso({ id, onBack }: { id: string; onBack: () => void }) {
           </ol>
         )}
       </Card>
+
+      {/* Modal de visualização da minuta completa */}
+      <PortariaViewerModal
+        portaria={portariaView}
+        aberto={!!portariaView}
+        onFechar={() => setPortariaView(null)}
+      />
     </div>
   );
 }

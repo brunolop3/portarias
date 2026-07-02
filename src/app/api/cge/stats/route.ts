@@ -80,6 +80,9 @@ export async function GET() {
         .sort((a, b) => b.total - a.total),
       porGrau: Object.entries(porGrau).map(([grau, total]) => ({ grau, total })),
       proximosVencer: proximosVencer.slice(0, 5),
+      // Evolução temporal: portarias por mês (últimos 12 meses a partir do
+      // mês da portaria mais antiga, ou dos últimos 12 meses corridos).
+      evolucaoMensal: await calcularEvolucaoMensal(),
     });
   } catch (e) {
     return NextResponse.json(
@@ -87,4 +90,30 @@ export async function GET() {
       { status: 500 }
     );
   }
+}
+
+// Calcula portarias geradas por mês (agrupadas por tipo), dos últimos 12
+// meses (incluindo o mês atual). Retorna array ordenado cronologicamente.
+async function calcularEvolucaoMensal() {
+  const portarias = await db.portaria.findMany({
+    select: { tipo: true, dataPortaria: true },
+  });
+  const agora = new Date();
+  const meses: { chave: string; label: string; constituicoes: number; alteracoes: number }[] = [];
+  for (let i = 11; i >= 0; i--) {
+    const d = new Date(agora.getUTCFullYear(), agora.getUTCMonth() - i, 1);
+    const chave = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
+    const label = d.toLocaleDateString("pt-BR", { month: "short", year: "2-digit" });
+    meses.push({ chave, label, constituicoes: 0, alteracoes: 0 });
+  }
+  const mapa = new Map(meses.map((m) => [m.chave, m]));
+  for (const p of portarias) {
+    const d = new Date(p.dataPortaria);
+    const chave = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
+    const m = mapa.get(chave);
+    if (!m) continue;
+    if (p.tipo === "Constituição") m.constituicoes++;
+    else m.alteracoes++;
+  }
+  return meses;
 }
