@@ -31,8 +31,15 @@ export default function Home() {
   return (
     <div className="min-h-screen flex flex-col bg-[var(--color-paper)]">
       <KeyboardShortcuts />
+      {/* Skip link — visível apenas ao receber foco via teclado (acessibilidade). */}
+      <a
+        href="#conteudo"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:rounded-md focus:bg-[var(--color-uems-navy)] focus:px-4 focus:py-2 focus:text-white focus:text-sm focus:shadow-lg"
+      >
+        Pular para o conteúdo
+      </a>
       <AppHeader />
-      <main className="flex-1 mx-auto w-full max-w-6xl px-4 sm:px-6 py-6 sm:py-8">
+      <main id="conteudo" className="flex-1 mx-auto w-full max-w-6xl px-4 sm:px-6 py-6 sm:py-8">
         {area === "inicio" && <TelaInicio />}
 
         {area === "novo" && (

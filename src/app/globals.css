@@ -306,9 +306,18 @@
    Refinamentos visuais: foco visível, transições suaves, seleção de texto.
    ========================================================================= */
 @layer base {
+  /* Foco visível forte para navegação por teclado (acessibilidade). */
   :focus-visible {
-    outline: 2px solid var(--color-uems-navy);
+    outline: 3px solid var(--color-uems-navy);
     outline-offset: 2px;
+    border-radius: 3px;
+  }
+  .dark :focus-visible {
+    outline-color: var(--color-uems-gold);
+  }
+  /* Foco em elementos dentro do cabeçalho navy usa dourado. */
+  header :focus-visible {
+    outline-color: var(--color-uems-gold);
   }
   ::selection {
     background: rgba(200, 168, 75, 0.28);

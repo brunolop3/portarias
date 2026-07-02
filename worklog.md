@@ -357,3 +357,29 @@ Stage Summary:
 - Navegação agora tem 5 itens: Início, Gerar Portaria, Comitês & Histórico, Métricas, Configurações.
 - Dark mode totalmente polido em todas as telas (cards, inputs, modais, gráficos).
 - Próximas fases sugeridas: importação em lote via CSV, PWA/offline, acessibilidade (ARIA expandido, navegação por teclado em modais), exportação PDF server-side, filtros salvos.
+
+---
+Task ID: 12
+Agent: webDevReview (cron)
+Task: Ciclo de QA + 2 features (acessibilidade, PWA).
+
+Work Log:
+- QA via agent-browser em todas as telas. Aplicação estável. VLM identificou gaps de acessibilidade (sem skip link, foco visível sutil).
+- Nova feature: Acessibilidade melhorada.
+  - Skip link "Pular para o conteúdo" adicionado ao page.tsx — visível apenas ao receber foco via teclado (sr-only focus:not-sr-only), posicionado absoluto no topo, navy com texto branco. main ganhou id="conteudo".
+  - Focus-visible aprimorado em globals.css: outline 3px (antes 2px) com border-radius 3px. No dark mode usa dourado. No cabeçalho navy usa dourado para contraste. VLM confirmou anel de foco visível (amarelo/dourado) no botão de busca.
+  - Testado: Tab mostra skip link, segundo Tab move foco para busca com anel dourado visível.
+- Nova feature: PWA (Progressive Web App).
+  - manifest.json: name, short_name, description, lang pt-BR, start_url /, display standalone, background_color paper, theme_color navy, icons 192/512 (maskable).
+  - Ícones gerados com sharp: 192x192, 512x512, 180x180 (apple-touch-icon) — navy com "CGE" em dourado serifado.
+  - Service Worker (public/sw.js): cache-first para assets estáticos, network-first para APIs, pré-cache do shell na instalação, limpeza de caches antigos na ativação.
+  - ServiceWorkerRegister component: registra /sw.js após window load (não compete com recursos críticos), só em navegadores que suportam.
+  - layout.tsx: metadata com manifest, icons, appleWebApp; viewport com themeColor navy.
+  - Testado: manifest served (200), sw.js served (200), icon-192 served (200), theme-color meta #00338C, link[rel=manifest] presente, apple-touch-icon presente.
+- Verificação: lint 0 erros; agent-browser confirmou skip link visível via Tab, focus ring dourado visível, dark mode funcionando. PWA assets todos served com 200.
+
+Stage Summary:
+- 2 features novas: acessibilidade (skip link + focus visible aprimorado), PWA (manifest + ícones + service worker offline).
+- Aplicação agora é instalável como PWA e funciona offline básico (shell cacheado).
+- Acessibilidade melhorada para navegação por teclado.
+- Próximas fases sugeridas: importação em lote via CSV, exportação PDF server-side, ARIA expandido em modais (focus trap), notificações push, sync em segundo plano.
