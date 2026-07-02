@@ -239,3 +239,33 @@ Stage Summary:
 - Fix de Prisma client stale que impedia o novo model de funcionar.
 - Aplicação estável, todas as ações relevantes agora são auditadas.
 - Próximas fases sugeridas: dashboard de rotatividade de membros, importação em lote via CSV, exportação PDF server-side, filtros avançados no painel de auditoria (por data/ação/entidade).
+
+---
+Task ID: 8
+Agent: webDevReview (cron)
+Task: Ciclo de QA + 2 features (filtros avançados na auditoria, dashboard de rotatividade de membros).
+
+Work Log:
+- QA via agent-browser. Aplicação estável. Console mostrava erros stale (Module not found KeyboardShortcuts, parse TelaConfig) — confirmado que são cache do navegador; página renderiza corretamente. Dev log sem erros.
+- Nova feature: Filtros avançados no painel de auditoria (TelaConfig).
+  - API /api/cge/auditoria estendida com query params: acao, entidade, busca (textual na descrição), dataIni, dataFim (ainda não expostos na UI, mas prontos).
+  - TelaConfig: adicionados 3 filtros — busca textual (com debounce 250ms), seletor de ação (agrupado por entidade: Comitê/Portaria/Configuração), seletor de entidade.
+  - Botão "Limpar" aparece quando há filtros ativos.
+  - Contagem dinâmica "N registro(s)" atualiza com os filtros.
+  - Cada registro agora tem badge colorido da ação (mesma cor do ícone) + badge da entidade, além do timestamp.
+  - Hover state nos itens da lista.
+  - Testado: filtro por ação config_editada mostra 1 registro; busca "Medicina" mostra 0; limpar volta a mostrar todos.
+- Nova feature: Dashboard de rotatividade de membros (TelaInicio).
+  - API /api/cge/stats estendida com rotatividadeMembros: totalPessoasDistintas, unicos (em 1 versão), maisRecorrentes (top 5 com nome, totalVersoes, cursos, funcoes).
+  - Cálculo percorre membros atuais + snapshots históricos (composicaoJson de cada portaria) para contar em quantas versões cada pessoa participou.
+  - Query do stats agora inclui portarias.composicaoJson.
+  - TelaInicio: 2 cards em grid (1+2 cols) — card esquerdo com número de pessoas distintas + breakdown (únicos vs recorrentes); card direito com ranking top 5 (medalha numerada navy, nome, cursos/funções, contador de versões).
+  - Empty state quando não há membros.
+  - Testado: 17 pessoas distintas, 16 únicos, 1 recorrente (JOÃO PEDRO DE OLIVEIRA em 2 versões). VLM confirmou cards claros e bem estruturados.
+- Verificação: lint 0 erros; agent-browser confirmou ambos os painéis renderizando, filtros funcionando (ação, busca), turnover com números corretos. VLM confirmou badges coloridos e filtros visíveis.
+
+Stage Summary:
+- 2 features novas: filtros avançados na auditoria (busca + ação + entidade + badges visuais), dashboard de rotatividade de membros (pessoas distintas + ranking de recorrentes).
+- Painel de auditoria agora é totalmente pesquisável e filtrável, com diferenciação visual clara por tipo de ação.
+- Dashboard da Tela Início agora tem 5 seções: métricas, distribuições, evolução temporal, rotatividade de membros, atalhos.
+- Próximas fases sugeridas: importação em lote via CSV, exportação PDF server-side, filtros de data na auditoria, gráfico de distribuição de funções (presidente/coordenador/membro), modal de detalhes do membro (histórico de participações).

@@ -38,6 +38,17 @@ interface Stats {
     constituicoes: number;
     alteracoes: number;
   }[];
+  rotatividadeMembros: {
+    totalPessoasDistintas: number;
+    unicos: number;
+    maisRecorrentes: {
+      nome: string;
+      totalVersoes: number;
+      totalCursos: number;
+      cursos: string[];
+      funcoes: string[];
+    }[];
+  };
 }
 
 export function TelaInicio() {
@@ -291,6 +302,71 @@ export function TelaInicio() {
               </div>
             </div>
             <ChartEvolucao dados={stats.evolucaoMensal} />
+          </Card>
+        </section>
+      )}
+
+      {/* Rotatividade de membros */}
+      {!loading && stats && stats.rotatividadeMembros && (
+        <section className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <Card className="rounded-md border p-5 lg:col-span-1" style={{ borderColor: "rgba(26,29,35,0.12)" }}>
+            <h3 className="font-display text-base text-[var(--color-ink)] mb-4 flex items-center gap-2">
+              <Users className="h-4 w-4 text-[var(--color-uems-navy)]" />
+              Rotatividade de membros
+            </h3>
+            <div className="space-y-3">
+              <div>
+                <p className="text-xs text-[var(--color-ink-muted)] uppercase tracking-wide">Pessoas distintas</p>
+                <p className="font-display text-3xl text-[var(--color-uems-navy)] mt-0.5">
+                  {stats.rotatividadeMembros.totalPessoasDistintas}
+                </p>
+                <p className="text-[11px] text-[var(--color-ink-muted)] mt-0.5">que já participaram de um CGE</p>
+              </div>
+              <div className="pt-3 border-t" style={{ borderColor: "rgba(26,29,35,0.08)" }}>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-[var(--color-ink-muted)]">Em apenas 1 versão</span>
+                  <span className="font-data font-medium text-[var(--color-ink)]">
+                    {stats.rotatividadeMembros.unicos}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-sm mt-1.5">
+                  <span className="text-[var(--color-ink-muted)]">Recorrentes</span>
+                  <span className="font-data font-medium text-[var(--color-ink)]">
+                    {stats.rotatividadeMembros.totalPessoasDistintas - stats.rotatividadeMembros.unicos}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="rounded-md border p-5 lg:col-span-2" style={{ borderColor: "rgba(26,29,35,0.12)" }}>
+            <h3 className="font-display text-base text-[var(--color-ink)] mb-4 flex items-center gap-2">
+              <TrendingUp className="h-4 w-4 text-[var(--color-uems-navy)]" />
+              Membros mais recorrentes
+            </h3>
+            {stats.rotatividadeMembros.maisRecorrentes.length === 0 ? (
+              <EmptyMini text="Nenhum membro cadastrado ainda." />
+            ) : (
+              <ul className="space-y-2">
+                {stats.rotatividadeMembros.maisRecorrentes.map((m, i) => (
+                  <li key={i} className="flex items-center gap-3 rounded-md border border-[rgba(26,29,35,0.08)] bg-[var(--color-paper)] p-2.5">
+                    <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[var(--color-uems-navy)] text-white text-xs font-data flex-shrink-0">
+                      {i + 1}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium text-[var(--color-ink)] truncate">{m.nome}</p>
+                      <p className="text-[11px] text-[var(--color-ink-muted)] truncate">
+                        {m.cursos.join(", ")} · {m.funcoes.join(", ")}
+                      </p>
+                    </div>
+                    <div className="text-right flex-shrink-0">
+                      <p className="font-data text-sm font-medium text-[var(--color-uems-navy)]">{m.totalVersoes}</p>
+                      <p className="text-[10px] text-[var(--color-ink-muted)] uppercase">versões</p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
           </Card>
         </section>
       )}

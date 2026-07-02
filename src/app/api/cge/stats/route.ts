@@ -12,7 +12,11 @@ import { situacaoDoComite, diasParaTermino, paraIsoDate, dataCurta } from "@/lib
 export async function GET() {
   try {
     const comites = await db.comite.findMany({
-      include: { membros: true, _count: { select: { portarias: true } } },
+      include: {
+        membros: true,
+        portarias: { select: { composicaoJson: true } },
+        _count: { select: { portarias: true } },
+      },
     });
     const totalPortarias = await db.portaria.count();
     const totalConstituicoes = await db.portaria.count({ where: { tipo: "Constituição" } });
@@ -83,6 +87,9 @@ export async function GET() {
       // Evolução temporal: portarias por mês (últimos 12 meses a partir do
       // mês da portaria mais antiga, ou dos últimos 12 meses corridos).
       evolucaoMensal: await calcularEvolucaoMensal(),
+      // Rotatividade de membros: quantas vezes cada nome apareceu em
+      // composições distintas (snapshot de cada portaria).
+      rotatividadeMembros: calcularRotatividade(comites),
     });
   } catch (e) {
     return NextResponse.json(
@@ -116,4 +123,75 @@ async function calcularEvolucaoMensal() {
     else m.alteracoes++;
   }
   return meses;
+}
+
+// Calcula rotatividade de membros: para cada nome que já apareceu em qualquer
+// composição (snapshot das portarias), conta em quantas versões distintas
+// participou. Membros que apareceram só 1 vez são "novos/únicos"; os que
+// apareceram em várias versões indicam continuidade.
+function calcularRotatividade(
+  comites: Array<{
+    id: string;
+    curso: string;
+    unidadeUniversitaria: string;
+    membros: Array<{ nome: string; funcao: string }>;
+    portarias: Array<{ composicaoJson: string }>;
+  }>
+) {
+  // Mapa: nome normalizado → { totalComites, totalVersoes, cursos: Set }
+  const mapa = new Map<
+    string,
+    { nome: string; totalVersoes: number; cursos: Set<string>; funcoes: Set<string> }
+  >();
+
+  for (const c of comites) {
+    // Snapshot atual (membros atuais).
+    for (const m of c.membros) {
+      const key = m.nome.trim().toUpperCase();
+      if (!key) continue;
+      if (!mapa.has(key)) {
+        mapa.set(key, { nome: m.nome.trim(), totalVersoes: 0, cursos: new Set(), funcoes: new Set() });
+      }
+      const entry = mapa.get(key)!;
+      entry.cursos.add(c.curso);
+      entry.funcoes.add(m.funcao);
+    }
+    // Snapshots históricos (de cada portaria).
+    for (const p of c.portarias) {
+      try {
+        const comp = JSON.parse(p.composicaoJson) as Array<{ nome: string; funcao: string }>;
+        for (const m of comp) {
+          const key = m.nome.trim().toUpperCase();
+          if (!key) continue;
+          if (!mapa.has(key)) {
+            mapa.set(key, { nome: m.nome.trim(), totalVersoes: 0, cursos: new Set(), funcoes: new Set() });
+          }
+          const entry = mapa.get(key)!;
+          entry.totalVersoes++;
+          entry.cursos.add(c.curso);
+          entry.funcoes.add(m.funcao);
+        }
+      } catch {
+        // ignore parse errors
+      }
+    }
+  }
+
+  // Converte para array e ordena por totalVersoes (mais recorrentes primeiro).
+  const lista = Array.from(mapa.values()).map((e) => ({
+    nome: e.nome,
+    totalVersoes: e.totalVersoes,
+    totalCursos: e.cursos.size,
+    cursos: Array.from(e.cursos),
+    funcoes: Array.from(e.funcoes),
+  }));
+  lista.sort((a, b) => b.totalVersoes - a.totalVersoes);
+
+  return {
+    totalPessoasDistintas: lista.length,
+    // Top 5 mais recorrentes (participaram de mais versões).
+    maisRecorrentes: lista.slice(0, 5),
+    // Membros que apareceram em apenas 1 versão (novos ou substituídos).
+    unicos: lista.filter((m) => m.totalVersoes === 1).length,
+  };
 }

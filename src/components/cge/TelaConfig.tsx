@@ -3,7 +3,7 @@
 import { useCge } from "@/lib/cge/store";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Save, RotateCcw, Settings as SettingsIcon, ShieldCheck, Calendar, History, FileText, Users, Trash2, Pause, Play } from "lucide-react";
+import { Save, RotateCcw, Settings as SettingsIcon, ShieldCheck, Calendar, History, FileText, Users, Trash2, Pause, Play, Search } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import type { ConfiguracaoCGE } from "@/lib/cge/types";
@@ -31,6 +31,10 @@ export function TelaConfig() {
   const [salvando, setSalvando] = useState(false);
   const [auditoria, setAuditoria] = useState<RegistroAuditoria[]>([]);
   const [carregandoAud, setCarregandoAud] = useState(true);
+  // Filtros do painel de auditoria.
+  const [filtroAcao, setFiltroAcao] = useState<string>("");
+  const [filtroEntidade, setFiltroEntidade] = useState<string>("");
+  const [buscaAud, setBuscaAud] = useState<string>("");
 
   useEffect(() => {
     if (config) { setForm(config); return; }
@@ -39,12 +43,21 @@ export function TelaConfig() {
       .then((c) => { if (c && !c.error) { setForm(c); setConfig(c); } });
   }, [config, setConfig]);
 
+  // Busca auditoria com filtros. Debounce na busca textual.
   useEffect(() => {
-    fetch("/api/cge/auditoria?limite=30")
-      .then((r) => r.json())
-      .then((d) => { if (Array.isArray(d)) setAuditoria(d); })
-      .finally(() => setCarregandoAud(false));
-  }, [salvando]); // recarrega após salvar config
+    setCarregandoAud(true);
+    const params = new URLSearchParams({ limite: "100" });
+    if (filtroAcao) params.set("acao", filtroAcao);
+    if (filtroEntidade) params.set("entidade", filtroEntidade);
+    if (buscaAud.trim()) params.set("busca", buscaAud.trim());
+    const t = setTimeout(() => {
+      fetch(`/api/cge/auditoria?${params.toString()}`)
+        .then((r) => r.json())
+        .then((d) => { if (Array.isArray(d)) setAuditoria(d); })
+        .finally(() => setCarregandoAud(false));
+    }, 250);
+    return () => clearTimeout(t);
+  }, [salvando, filtroAcao, filtroEntidade, buscaAud]);
 
   function set<K extends keyof ConfiguracaoCGE>(k: K, v: ConfiguracaoCGE[K]) {
     setForm((f) => (f ? { ...f, [k]: v } : f));
@@ -156,18 +169,78 @@ export function TelaConfig() {
         </div>
       </Card>
 
-      {/* Histórico de auditoria */}
+      {/* Histórico de auditoria com filtros */}
       <Card className="rounded-md border" style={{ borderColor: "rgba(26,29,35,0.12)" }}>
         <div className="p-4 border-b flex items-center gap-2" style={{ borderColor: "rgba(26,29,35,0.08)" }}>
           <History className="h-4 w-4 text-[var(--color-uems-navy)]" />
           <h2 className="font-display text-base text-[var(--color-ink)]">Histórico de auditoria</h2>
-          <span className="text-xs text-[var(--color-ink-muted)] ml-auto">Últimas 30 ações</span>
+          <span className="text-xs text-[var(--color-ink-muted)] ml-auto">
+            {auditoria.length} registro(s)
+          </span>
         </div>
+        {/* Filtros */}
+        <div className="p-3 border-b flex flex-col sm:flex-row gap-2 sm:items-center bg-[var(--color-paper)]" style={{ borderColor: "rgba(26,29,35,0.08)" }}>
+          <div className="relative flex-1 max-w-xs">
+            <Search className="h-3.5 w-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-[var(--color-ink-muted)]" />
+            <input
+              value={buscaAud}
+              onChange={(e) => setBuscaAud(e.target.value)}
+              placeholder="Buscar na descrição..."
+              className="w-full pl-8 pr-3 py-1.5 text-xs rounded-md border bg-white focus:outline-none focus:ring-1 focus:ring-[var(--color-uems-navy)]"
+              style={{ borderColor: "rgba(26,29,35,0.16)" }}
+            />
+          </div>
+          <select
+            value={filtroAcao}
+            onChange={(e) => setFiltroAcao(e.target.value)}
+            className="text-xs rounded-md border bg-white px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-[var(--color-uems-navy)]"
+            style={{ borderColor: "rgba(26,29,35,0.16)" }}
+          >
+            <option value="">Todas as ações</option>
+            <optgroup label="Comitê">
+              <option value="comite_criado">Criado</option>
+              <option value="comite_alterado">Alterado</option>
+              <option value="comite_encerrado">Encerrado</option>
+              <option value="comite_reativado">Reativado</option>
+              <option value="comite_excluido">Excluído</option>
+            </optgroup>
+            <optgroup label="Portaria">
+              <option value="portaria_gerada">Gerada</option>
+              <option value="portaria_excluida">Excluída</option>
+            </optgroup>
+            <optgroup label="Configuração">
+              <option value="config_editada">Editada</option>
+            </optgroup>
+          </select>
+          <select
+            value={filtroEntidade}
+            onChange={(e) => setFiltroEntidade(e.target.value)}
+            className="text-xs rounded-md border bg-white px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-[var(--color-uems-navy)]"
+            style={{ borderColor: "rgba(26,29,35,0.16)" }}
+          >
+            <option value="">Todas as entidades</option>
+            <option value="comite">Comitês</option>
+            <option value="portaria">Portarias</option>
+            <option value="config">Configurações</option>
+          </select>
+          {(filtroAcao || filtroEntidade || buscaAud) && (
+            <button
+              type="button"
+              onClick={() => { setFiltroAcao(""); setFiltroEntidade(""); setBuscaAud(""); }}
+              className="text-xs text-[var(--color-uems-navy)] hover:underline whitespace-nowrap"
+            >
+              Limpar
+            </button>
+          )}
+        </div>
+        {/* Lista */}
         {carregandoAud ? (
           <div className="p-6 text-center text-sm text-[var(--color-ink-muted)]">Carregando...</div>
         ) : auditoria.length === 0 ? (
           <div className="p-6 text-center text-sm text-[var(--color-ink-muted)]">
-            Nenhuma ação registrada ainda.
+            {filtroAcao || filtroEntidade || buscaAud
+              ? "Nenhum registro encontrado com os filtros atuais."
+              : "Nenhuma ação registrada ainda."}
           </div>
         ) : (
           <ul className="divide-y max-h-96 overflow-y-auto scroll-thin" style={{ borderColor: "rgba(26,29,35,0.06)" }}>
@@ -175,18 +248,23 @@ export function TelaConfig() {
               const Icon = iconeAcao(r.acao);
               const cor = corAcao(r.acao);
               return (
-                <li key={r.id} className="p-3 flex items-start gap-3">
+                <li key={r.id} className="p-3 flex items-start gap-3 hover:bg-[var(--color-paper)] transition-colors">
                   <span className="flex h-7 w-7 items-center justify-center rounded-md flex-shrink-0 mt-0.5"
                     style={{ background: cor + "1a" }}>
                     <Icon className="h-3.5 w-3.5" style={{ color: cor }} />
                   </span>
                   <div className="min-w-0 flex-1">
                     <p className="text-sm text-[var(--color-ink)] leading-snug">{r.descricao}</p>
-                    <p className="text-[11px] text-[var(--color-ink-muted)] mt-0.5 font-data">
-                      {new Date(r.criadoEm).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "2-digit", hour: "2-digit", minute: "2-digit" })}
-                      <span className="mx-1">·</span>
-                      <span className="uppercase tracking-wide">{r.acao.replace(/_/g, " ")}</span>
-                    </p>
+                    <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                      <span className="text-[11px] text-[var(--color-ink-muted)] font-data">
+                        {new Date(r.criadoEm).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "2-digit", hour: "2-digit", minute: "2-digit" })}
+                      </span>
+                      <span className="text-[10px] font-medium px-1.5 py-0.5 rounded uppercase tracking-wide"
+                        style={{ background: cor + "1a", color: cor }}>
+                        {r.acao.replace(/_/g, " ")}
+                      </span>
+                      <span className="text-[10px] text-[var(--color-ink-muted)] uppercase tracking-wide">{r.entidade}</span>
+                    </div>
                   </div>
                 </li>
               );
