@@ -100,12 +100,16 @@ export function AppFooter() {
     >
       <div className="mx-auto max-w-6xl px-4 sm:px-6 py-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          {/* Logo completa (preto) sobre fundo paper — contraste ok */}
-          <img
-            src="/diges-logo-transparente.png"
-            alt="Logo DIGES — Diretoria de Gestão do Ensino"
-            className="h-7 w-auto"
-          />
+          {/* Apenas o texto "DIGES" em dourado — sem logo (sem contraste sobre fundo claro) */}
+          <span
+            className="font-display text-xl tracking-wide"
+            style={{ color: "var(--color-uems-gold)" }}
+          >
+            DIGES
+          </span>
+          <span className="hidden sm:inline text-[10px] uppercase tracking-wide text-[var(--color-ink-muted)] leading-tight">
+            Diretoria de Gestão<br />do Ensino · PROE/UEMS
+          </span>
         </div>
         <p className="text-xs text-[var(--color-ink-muted)] leading-snug max-w-md">
           Universidade Estadual de Mato Grosso do Sul · Pró-Reitoria de Ensino (PROE) ·

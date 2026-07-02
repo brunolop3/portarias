@@ -28,9 +28,6 @@ export const metadata: Metadata = {
   title: "DIGES/PROE-UEMS — Portarias do CGE",
   description:
     "Sistema de geração de minutas de Portarias dos Comitês de Gestão do Enade (CGE) da Universidade Estadual de Mato Grosso do Sul.",
-  icons: {
-    icon: "/diges-logo.png",
-  },
 };
 
 export default function RootLayout({

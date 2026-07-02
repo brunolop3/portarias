@@ -179,7 +179,13 @@ export function Tela4Geracao() {
         <div className="bg-[var(--color-paper)] border-b px-6 py-4 flex items-center justify-between"
           style={{ borderColor: "rgba(26,29,35,0.1)" }}>
           <div className="flex items-center gap-3">
-            <img src="/diges-logo-transparente.png" alt="DIGES" className="h-7 w-auto" />
+            {/* Apenas o texto "DIGES" em dourado — sem logo */}
+            <span
+              className="font-display text-lg tracking-wide"
+              style={{ color: "var(--color-uems-gold)" }}
+            >
+              DIGES
+            </span>
             <div className="text-[10px] uppercase tracking-wide text-[var(--color-ink-muted)] leading-tight">
               Universidade Estadual de Mato Grosso do Sul<br />
               Pró-Reitoria de Ensino · DIGES

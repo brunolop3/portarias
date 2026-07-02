@@ -43,3 +43,38 @@ Stage Summary:
 - HANDOVER.md criado documentando arquitetura, templates, modelo de dados, identidade visual e como rodar.
 - Screenshots das telas principais em /home/z/my-project/download/ (01-inicio, 02-consulta-lista, 03-curso-detalhe, 04-config, 05-tela1).
 - Próxima fase (cron webDevReview): adicionar mais features (ex.: edição/exclusão de comitê na UI, exportar minuta em PDF, dashboard com métricas, busca avançada, validação de número de portaria duplicado, etc.) e refinar detalhes visuais.
+
+---
+Task ID: 2
+Agent: main (Z.ai Code)
+Task: Aplicar adendo de formatação do .docx (A4, margens 3cm, TNR 12pt, ementa recuo 8cm, corpo recuo 1,5cm + espaçamento simples, assinatura centralizada, tabela real, sem notas de quórum) e remover todas as logos da UI (manter apenas texto "DIGES" dourado).
+
+Work Log:
+- Reescrevi completamente /api/cge/exportar-docx com helpers tipados (paraCorpo, paraEmenta, paraTitulo, paraTimbre, paraAssinatura, spacer, paraCell) aplicando formatação EXATA e CONSISTENTE:
+  - Página A4 (11906×16838 twips), margens 3cm (1701 twips) todos os lados.
+  - Fonte Times New Roman 12pt (size 24) em todo o documento.
+  - Timbre: 3 linhas centralizadas, 1ª em negrito.
+  - Título: negrito, esquerda, sem recuo.
+  - Ementa: recuo esquerdo 8cm (4536 twips), sem recuo de 1ª linha, justificado, sem negrito.
+  - Corpo (preâmbulo, CONSIDERANDO, RESOLVE:, artigos): justificado, recuo de 1ª linha 1,5cm (851 twips), espaçamento simples (line 240), uma linha em branco após (after 240). "RESOLVE:" em negrito.
+  - Tabela de membros: tabela real, 2 colunas, cabeçalho negrito, na margem normal (sem herdar recuo).
+  - Assinatura: CENTRALIZADA, nome negrito MAIÚSCULAS, cargo normal.
+  - Parágrafos vazios espaçadores: sem alinhamento (neutros).
+  - Nenhuma anotação de quórum no texto.
+- Encontrei e corrigi bug crítico: nesta versão do `docx` (9.7.1), AlignmentType.CENTERED NÃO EXISTE (é undefined), fazendo o alinhamento centralizado ser omitido no XML. Corrigi para AlignmentType.CENTER (valor "center").
+- Removi todas as logos da UI:
+  - layout.tsx: removido o favicon (icons.icon = "/diges-logo.png").
+  - AppShell.tsx (footer): removido <img diges-logo-transparente.png>, substituído por texto "DIGES" dourado + subtítulo.
+  - Tela4Geracao.tsx (timbre do preview): removido <img>, substituído por texto "DIGES" dourado.
+  - Removido public/logo.svg (placeholder do Z.ai).
+- Verificação do .docx via inspeção XML: todos os 31 (Constituição) / 32 (Alteração) parágrafos com formatação correta e consistente (alinhamento, recuo, espaçamento, negrito conferidos um a um).
+- Verificação visual via VLM (LibreOffice → PDF → imagem): todos os 7 itens do checklist confirmados — ementa com recuo 8cm à direita, corpo consistente com recuo 1,5cm e espaçamento simples, assinatura centralizada, tabela real, sem notas de quórum, parágrafos vazios neutros.
+- Verificação UI via VLM: nenhuma imagem/logo no cabeçalho ou rodapé; apenas texto "DIGES" dourado.
+- Lint: 0 erros.
+
+Stage Summary:
+- Formatação do .docx agora segue EXATAMENTE a especificação institucional, com consistência em todo o documento (o problema de variação entre seções foi resolvido).
+- Bug do AlignmentType.CENTERED corrigido — assinatura e timbre agora centralizam corretamente.
+- UI sem nenhuma logo — apenas o texto "DIGES" dourado (cabeçalho, rodapé e timbre do preview).
+- Documentos de teste (Constituição + Alteração) gerados e conferidos linha a linha (XML + visual).
+- Próxima fase: continuar refinando detalhes e adicionando features conforme cron webDevReview.
