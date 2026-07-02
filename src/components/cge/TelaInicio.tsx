@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import {
   PlusCircle, ListChecks, Settings, FileText, BookOpen, ShieldCheck,
   Users, FileStack, TrendingUp, CalendarClock, GraduationCap, Building2,
-  AlertTriangle, ArrowRight, CheckCircle2, Clock, XCircle,
+  AlertTriangle, ArrowRight, CheckCircle2, Clock, XCircle, UserCheck,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { Comite } from "@/lib/cge/types";
@@ -49,6 +49,7 @@ interface Stats {
       funcoes: string[];
     }[];
   };
+  distribuicaoFuncoes: { funcao: string; total: number }[];
 }
 
 export function TelaInicio() {
@@ -276,6 +277,19 @@ export function TelaInicio() {
                   </li>
                 ))}
               </ul>
+            )}
+          </Card>
+
+          {/* Distribuição de funções */}
+          <Card className="rounded-md border p-5" style={{ borderColor: "rgba(26,29,35,0.12)" }}>
+            <h3 className="font-display text-base text-[var(--color-ink)] mb-4 flex items-center gap-2">
+              <UserCheck className="h-4 w-4 text-[var(--color-uems-navy)]" />
+              Distribuição de funções
+            </h3>
+            {stats.distribuicaoFuncoes.length === 0 ? (
+              <EmptyMini text="Nenhum membro em exercício." />
+            ) : (
+              <DonutFuncoes dados={stats.distribuicaoFuncoes} />
             )}
           </Card>
         </section>
@@ -583,6 +597,89 @@ function ChartEvolucao({
           Total: <strong className="text-[var(--color-ink)] font-data">{totalCons + totalAlt}</strong>{" "}
           ({totalCons} constituições · {totalAlt} alterações)
         </span>
+      </div>
+    </div>
+  );
+}
+
+// Donut chart (SVG puro) mostrando a distribuição de funções nos comitês
+// ativos. Cada função tem uma cor institucional: Presidente=dourado,
+// Coordenador=navy, Membro=cinza.
+function DonutFuncoes({ dados }: { dados: { funcao: string; total: number }[] }) {
+  const total = dados.reduce((a, d) => a + d.total, 0);
+  if (total === 0) return null;
+
+  const corFuncao = (funcao: string) => {
+    if (funcao === "Presidente") return "var(--color-uems-gold)";
+    if (funcao.includes("Coordenador")) return "var(--color-uems-navy)";
+    return "var(--color-ink-muted)";
+  };
+  const labelCurto = (funcao: string) => {
+    if (funcao === "Presidente") return "Presidentes";
+    if (funcao.includes("Coordenador")) return "Coordenadores";
+    return "Membros";
+  };
+
+  // Calcula os segmentos do donut (stroke-dasharray) — usa reduce para
+  // acumular offsets sem mutação de variável externa.
+  const raio = 42;
+  const circunferencia = 2 * Math.PI * raio;
+  const segmentos = dados.reduce<{
+    items: { funcao: string; comprimento: number; offset: number }[];
+    acc: number;
+  }>(
+    (res, d) => {
+      const comprimento = (d.total / total) * circunferencia;
+      res.items.push({ funcao: d.funcao, comprimento, offset: res.acc });
+      res.acc += comprimento;
+      return res;
+    },
+    { items: [], acc: 0 }
+  ).items;
+
+  return (
+    <div className="flex items-center gap-4">
+      {/* SVG donut */}
+      <svg width="110" height="110" viewBox="0 0 110 110" className="flex-shrink-0">
+        <circle cx="55" cy="55" r={raio} fill="none" stroke="var(--color-muted)" strokeWidth="14" />
+        {segmentos.map((s, i) => (
+          <circle
+            key={i}
+            cx="55"
+            cy="55"
+            r={raio}
+            fill="none"
+            stroke={corFuncao(s.funcao)}
+            strokeWidth="14"
+            strokeDasharray={`${s.comprimento} ${circunferencia - s.comprimento}`}
+            strokeDashoffset={-s.offset}
+            transform="rotate(-90 55 55)"
+            className="transition-all duration-500"
+          />
+        ))}
+        <text x="55" y="50" textAnchor="middle" className="font-display fill-[var(--color-ink)]" style={{ fontSize: "20px" }}>
+          {total}
+        </text>
+        <text x="55" y="66" textAnchor="middle" className="fill-[var(--color-ink-muted)]" style={{ fontSize: "9px" }}>
+          membros
+        </text>
+      </svg>
+      {/* Legenda com valores */}
+      <div className="flex-1 space-y-2">
+        {dados.map((d, i) => (
+          <div key={i} className="flex items-center justify-between text-sm">
+            <span className="flex items-center gap-2">
+              <span className="inline-block h-2.5 w-2.5 rounded-sm" style={{ background: corFuncao(d.funcao) }} />
+              <span className="text-[var(--color-ink)]">{labelCurto(d.funcao)}</span>
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="font-data font-medium text-[var(--color-ink)]">{d.total}</span>
+              <span className="text-[10px] text-[var(--color-ink-muted)]">
+                ({Math.round((d.total / total) * 100)}%)
+              </span>
+            </span>
+          </div>
+        ))}
       </div>
     </div>
   );

@@ -90,6 +90,8 @@ export async function GET() {
       // Rotatividade de membros: quantas vezes cada nome apareceu em
       // composições distintas (snapshot de cada portaria).
       rotatividadeMembros: calcularRotatividade(comites),
+      // Distribuição de funções nos comitês ativos (presidente/coordenador/membro).
+      distribuicaoFuncoes: calcularDistribuicaoFuncoes(comites),
     });
   } catch (e) {
     return NextResponse.json(
@@ -195,3 +197,25 @@ function calcularRotatividade(
     unicos: lista.filter((m) => m.totalVersoes === 1).length,
   };
 }
+
+// Calcula a distribuição de funções nos comitês ativos: quantos membros
+// ocupam cada função (Presidente, Coordenador, Membro) atualmente.
+function calcularDistribuicaoFuncoes(
+  comites: Array<{
+    status: string;
+    membros: Array<{ nome: string; funcao: string }>;
+  }>
+) {
+  const mapa = new Map<string, number>();
+  for (const c of comites) {
+    if (c.status !== "ativo") continue;
+    for (const m of c.membros) {
+      mapa.set(m.funcao, (mapa.get(m.funcao) || 0) + 1);
+    }
+  }
+  // Ordena por total decrescente.
+  return Array.from(mapa.entries())
+    .map(([funcao, total]) => ({ funcao, total }))
+    .sort((a, b) => b.total - a.total);
+}
+

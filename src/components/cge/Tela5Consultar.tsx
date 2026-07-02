@@ -15,6 +15,7 @@ import { dataCurta, dataPorExtenso, diasParaTermino, situacaoDoComite, terminoMa
 import { ordenarMembrosParaTabela } from "@/lib/cge/quorum";
 import { cn } from "@/lib/utils";
 import { PortariaViewerModal } from "@/components/cge/PortariaViewerModal";
+import { MemberDetailsModal } from "@/components/cge/MemberDetailsModal";
 import { useConfirm } from "@/components/cge/ConfirmDialog";
 
 // ===========================================================================
@@ -280,6 +281,8 @@ function PaginaCurso({ id, onBack }: { id: string; onBack: () => void }) {
   const [erro, setErro] = useState<string | null>(null);
   // Portaria selecionada para visualização no modal.
   const [portariaView, setPortariaView] = useState<PortariaGerada | null>(null);
+  // Membro selecionado para visualização do histórico.
+  const [membroView, setMembroView] = useState<string | null>(null);
   const confirmar = useConfirm();
 
   useEffect(() => {
@@ -478,7 +481,9 @@ function PaginaCurso({ id, onBack }: { id: string; onBack: () => void }) {
             </div>
 
             <div>
-              <p className="text-xs uppercase tracking-wide text-[var(--color-ink-muted)] mb-2">Membros em exercício</p>
+              <p className="text-xs uppercase tracking-wide text-[var(--color-ink-muted)] mb-2">
+                Membros em exercício <span className="normal-case font-normal">(clique no nome para ver o histórico)</span>
+              </p>
               <div className="rounded-md border overflow-hidden" style={{ borderColor: "rgba(26,29,35,0.1)" }}>
                 <table className="w-full text-sm">
                   <thead className="bg-[var(--color-paper)]">
@@ -489,8 +494,17 @@ function PaginaCurso({ id, onBack }: { id: string; onBack: () => void }) {
                   </thead>
                   <tbody className="divide-y" style={{ borderColor: "rgba(26,29,35,0.06)" }}>
                     {membrosOrdenados.map((m) => (
-                      <tr key={m.id}>
-                        <td className="px-3 py-2 text-[var(--color-ink)]">{m.nome}</td>
+                      <tr key={m.id} className="hover:bg-[var(--color-paper)] transition-colors">
+                        <td className="px-3 py-2">
+                          <button
+                            type="button"
+                            onClick={() => setMembroView(m.nome)}
+                            className="text-[var(--color-uems-navy)] hover:underline text-left font-medium"
+                            title="Ver histórico de participações"
+                          >
+                            {m.nome}
+                          </button>
+                        </td>
                         <td className="px-3 py-2 text-[var(--color-ink-muted)] text-xs">{m.funcao}</td>
                       </tr>
                     ))}
@@ -599,6 +613,13 @@ function PaginaCurso({ id, onBack }: { id: string; onBack: () => void }) {
         portaria={portariaView}
         aberto={!!portariaView}
         onFechar={() => setPortariaView(null)}
+      />
+
+      {/* Modal de detalhes do membro (histórico de participações) */}
+      <MemberDetailsModal
+        nome={membroView}
+        aberto={!!membroView}
+        onFechar={() => setMembroView(null)}
       />
     </div>
   );

@@ -269,3 +269,35 @@ Stage Summary:
 - Painel de auditoria agora é totalmente pesquisável e filtrável, com diferenciação visual clara por tipo de ação.
 - Dashboard da Tela Início agora tem 5 seções: métricas, distribuições, evolução temporal, rotatividade de membros, atalhos.
 - Próximas fases sugeridas: importação em lote via CSV, exportação PDF server-side, filtros de data na auditoria, gráfico de distribuição de funções (presidente/coordenador/membro), modal de detalhes do membro (histórico de participações).
+
+---
+Task ID: 9
+Agent: webDevReview (cron)
+Task: Ciclo de QA + 3 features (modal de detalhes do membro, gráfico donut de funções, filtros de data na auditoria).
+
+Work Log:
+- QA via agent-browser. Aplicação estável, sem bugs críticos. Console mostrava erros stale (limpei).
+- Nova feature: Modal de detalhes do membro (histórico de participações).
+  - API GET /api/cge/membro/[nome]: percorre membros atuais + snapshots históricos (composicaoJson) de todas as portarias, retorna participações (atuais e históricas), total de comitês, funções exercidas, com timestamps e dados da portaria de origem.
+  - Componente MemberDetailsModal: dialog com cabeçalho (nome + ícone), 3 cards de resumo (comitês, participações, funções), badges de funções exercidas, lista de participações com badges coloridos (Presidente=dourado, Coordenador=navy, Membro=cinza), indicação "Em exercício" para atuais, dados do curso/unidade/data/portaria.
+  - Nomes dos membros na tabela do curso agora são clicáveis (link navy com underline no hover) e abrem o modal.
+  - Estado unificado (idle/loading/ok/erro) para evitar setState síncrono em effect.
+  - Testado: clicar em "LUCAS MARTINS PEREIRA" abre modal mostrando 1 comitê, 1 participação, função Presidente, "Em exercício". VLM confirmou todos os elementos.
+- Nova feature: Gráfico donut de distribuição de funções na Tela Início.
+  - API /api/cge/stats estendida com distribuicaoFuncoes: conta membros por função nos comitês ativos.
+  - Componente DonutFuncoes (SVG puro, sem dependência): donut chart com segmentos coloridos por função (Presidente=dourado, Coordenador=navy, Membro=cinza), total no centro, legenda com contagem e percentual. Animação transition-all.
+  - Adicionado como 4º card na seção de distribuições (grid de 4 agora: Situação, Por unidade, Mandatos, Distribuição de funções).
+  - Testado: 14 membros totais (3 presidentes, 3 coordenadores, 8 membros) com percentuais. VLM confirmou donut polido com cores institucionais.
+- Nova feature: Filtros de data no painel de auditoria.
+  - API /api/cge/auditoria já suportava dataIni/dataFim (adicionados no ciclo anterior).
+  - TelaConfig: adicionados 2 campos date (data inicial → data final) na barra de filtros, com debounce.
+  - Botão "Limpar" agora reset também as datas.
+  - Testado: campos date presentes e funcionais.
+- Verificação: lint 0 erros; agent-browser confirmou modal de membro abrindo com histórico, donut chart renderizando com segmentos e legenda, filtros de date na auditoria. VLM confirmou todos os 3 features.
+
+Stage Summary:
+- 3 features novas: modal de detalhes do membro (histórico completo de participações), gráfico donut de distribuição de funções, filtros de data na auditoria.
+- Dashboard da Tela Início agora tem 6 seções: métricas, 4 distribuições (situação, unidade, mandatos, funções), evolução temporal, rotatividade, atalhos.
+- Página do curso agora tem membros interativos (clique para ver histórico).
+- Painel de auditoria agora é totalmente filtrável (texto, ação, entidade, período).
+- Próximas fases sugeridas: importação em lote via CSV, exportação PDF server-side, gráfico de evolução de membros por curso, notificações de mandatos vencendo, modo escuro.

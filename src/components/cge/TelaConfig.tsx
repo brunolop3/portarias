@@ -35,6 +35,8 @@ export function TelaConfig() {
   const [filtroAcao, setFiltroAcao] = useState<string>("");
   const [filtroEntidade, setFiltroEntidade] = useState<string>("");
   const [buscaAud, setBuscaAud] = useState<string>("");
+  const [filtroDataIni, setFiltroDataIni] = useState<string>("");
+  const [filtroDataFim, setFiltroDataFim] = useState<string>("");
 
   useEffect(() => {
     if (config) { setForm(config); return; }
@@ -50,6 +52,8 @@ export function TelaConfig() {
     if (filtroAcao) params.set("acao", filtroAcao);
     if (filtroEntidade) params.set("entidade", filtroEntidade);
     if (buscaAud.trim()) params.set("busca", buscaAud.trim());
+    if (filtroDataIni) params.set("dataIni", filtroDataIni);
+    if (filtroDataFim) params.set("dataFim", filtroDataFim);
     const t = setTimeout(() => {
       fetch(`/api/cge/auditoria?${params.toString()}`)
         .then((r) => r.json())
@@ -57,7 +61,7 @@ export function TelaConfig() {
         .finally(() => setCarregandoAud(false));
     }, 250);
     return () => clearTimeout(t);
-  }, [salvando, filtroAcao, filtroEntidade, buscaAud]);
+  }, [salvando, filtroAcao, filtroEntidade, buscaAud, filtroDataIni, filtroDataFim]);
 
   function set<K extends keyof ConfiguracaoCGE>(k: K, v: ConfiguracaoCGE[K]) {
     setForm((f) => (f ? { ...f, [k]: v } : f));
@@ -223,10 +227,29 @@ export function TelaConfig() {
             <option value="portaria">Portarias</option>
             <option value="config">Configurações</option>
           </select>
-          {(filtroAcao || filtroEntidade || buscaAud) && (
+          <div className="flex items-center gap-1">
+            <input
+              type="date"
+              value={filtroDataIni}
+              onChange={(e) => setFiltroDataIni(e.target.value)}
+              className="text-xs rounded-md border bg-white px-2 py-1.5 font-data focus:outline-none focus:ring-1 focus:ring-[var(--color-uems-navy)]"
+              style={{ borderColor: "rgba(26,29,35,0.16)" }}
+              title="Data inicial"
+            />
+            <span className="text-[var(--color-ink-muted)] text-xs">→</span>
+            <input
+              type="date"
+              value={filtroDataFim}
+              onChange={(e) => setFiltroDataFim(e.target.value)}
+              className="text-xs rounded-md border bg-white px-2 py-1.5 font-data focus:outline-none focus:ring-1 focus:ring-[var(--color-uems-navy)]"
+              style={{ borderColor: "rgba(26,29,35,0.16)" }}
+              title="Data final"
+            />
+          </div>
+          {(filtroAcao || filtroEntidade || buscaAud || filtroDataIni || filtroDataFim) && (
             <button
               type="button"
-              onClick={() => { setFiltroAcao(""); setFiltroEntidade(""); setBuscaAud(""); }}
+              onClick={() => { setFiltroAcao(""); setFiltroEntidade(""); setBuscaAud(""); setFiltroDataIni(""); setFiltroDataFim(""); }}
               className="text-xs text-[var(--color-uems-navy)] hover:underline whitespace-nowrap"
             >
               Limpar
