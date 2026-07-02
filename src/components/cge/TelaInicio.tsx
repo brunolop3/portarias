@@ -63,33 +63,76 @@ export function TelaInicio() {
   return (
     <div className="space-y-8">
       {/* Hero institucional */}
-      <section className="rounded-md border bg-white p-6 sm:p-8 overflow-hidden relative"
+      <section className="rounded-md border bg-white overflow-hidden relative"
         style={{ borderColor: "rgba(26,29,35,0.12)" }}>
         {/* Faixa decorativa lateral navy */}
         <div className="absolute left-0 top-0 bottom-0 w-1.5" style={{ background: "var(--color-uems-navy)" }} />
-        <div className="flex flex-col lg:flex-row lg:items-center gap-6 pl-2">
-          <div className="flex-1 min-w-0">
-            <p className="text-xs uppercase tracking-wider text-[var(--color-ink-muted)] mb-2 font-data">
-              PROE · DIGES · UEMS
-            </p>
-            <h1 className="font-display text-2xl sm:text-3xl text-[var(--color-ink)] leading-tight">
-              Geração de Portarias dos Comitês de Gestão do Enade
-            </h1>
-            <p className="mt-3 text-[var(--color-ink-muted)] max-w-2xl leading-relaxed">
-              Registre a constituição e a alteração dos CGE de cada curso e gere
-              automaticamente a minuta da Portaria, pronta para encaminhamento ao
-              Diário Oficial. Importe a CI da Coordenação do Curso e mantenha o
-              histórico completo de cada comitê.
-            </p>
-            <div className="mt-5 flex flex-wrap gap-3">
-              <Button onClick={irParaNovo} className="bg-[var(--color-uems-navy)] hover:bg-[var(--color-uems-navy-deep)] text-white">
-                <PlusCircle className="h-4 w-4 mr-2" /> Gerar nova Portaria
-              </Button>
-              <Button variant="outline" onClick={irParaConsultar}
-                className="border-[rgba(26,29,35,0.2)] text-[var(--color-ink)] hover:bg-[var(--color-muted)]">
-                <ListChecks className="h-4 w-4 mr-2" /> Consultar comitês
-              </Button>
+        {/* Padrão decorativo sutil no canto (linhas diagonais douradas) */}
+        <div className="absolute right-0 top-0 w-40 h-40 opacity-[0.06] pointer-events-none"
+          style={{
+            backgroundImage:
+              "repeating-linear-gradient(135deg, var(--color-uems-gold) 0, var(--color-uems-gold) 1px, transparent 1px, transparent 10px)",
+          }}
+        />
+        <div className="relative p-6 sm:p-8 pl-8">
+          <div className="flex flex-col lg:flex-row lg:items-start gap-6">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="inline-flex items-center gap-1.5 text-[10px] font-medium px-2 py-0.5 rounded uppercase tracking-wider"
+                  style={{ background: "#FBF6E6", color: "#8a6d12" }}>
+                  <ShieldCheck className="h-3 w-3" /> Sistema oficial
+                </span>
+                <span className="text-[10px] text-[var(--color-ink-muted)] font-data uppercase tracking-wider">
+                  PROE · DIGES · UEMS
+                </span>
+              </div>
+              <h1 className="font-display text-2xl sm:text-3xl text-[var(--color-ink)] leading-tight">
+                Geração de Portarias dos Comitês de Gestão do Enade
+              </h1>
+              <p className="mt-3 text-[var(--color-ink-muted)] max-w-2xl leading-relaxed">
+                Registre a constituição e a alteração dos CGE de cada curso e gere
+                automaticamente a minuta da Portaria, pronta para encaminhamento ao
+                Diário Oficial. Importe a CI da Coordenação do Curso e mantenha o
+                histórico completo de cada comitê.
+              </p>
+              <div className="mt-5 flex flex-wrap gap-3">
+                <Button onClick={irParaNovo} className="bg-[var(--color-uems-navy)] hover:bg-[var(--color-uems-navy-deep)] text-white">
+                  <PlusCircle className="h-4 w-4 mr-2" /> Gerar nova Portaria
+                </Button>
+                <Button variant="outline" onClick={irParaConsultar}
+                  className="border-[rgba(26,29,35,0.2)] text-[var(--color-ink)] hover:bg-[var(--color-muted)]">
+                  <ListChecks className="h-4 w-4 mr-2" /> Consultar comitês
+                </Button>
+              </div>
+              {/* Dica de atalho */}
+              <div className="mt-4 flex items-center gap-2 text-xs text-[var(--color-ink-muted)]">
+                <kbd className="font-data bg-[var(--color-muted)] px-1.5 py-0.5 rounded border" style={{ borderColor: "rgba(26,29,35,0.15)" }}>Ctrl</kbd>
+                <span>+</span>
+                <kbd className="font-data bg-[var(--color-muted)] px-1.5 py-0.5 rounded border" style={{ borderColor: "rgba(26,29,35,0.15)" }}>K</kbd>
+                <span>para buscar ·</span>
+                <kbd className="font-data bg-[var(--color-muted)] px-1.5 py-0.5 rounded border" style={{ borderColor: "rgba(26,29,35,0.15)" }}>g</kbd>
+                <span>+</span>
+                <kbd className="font-data bg-[var(--color-muted)] px-1.5 py-0.5 rounded border" style={{ borderColor: "rgba(26,29,35,0.15)" }}>n</kbd>
+                <span>para nova portaria</span>
+              </div>
             </div>
+            {/* Destaque numérico à direita */}
+            {!loading && stats && (
+              <div className="lg:w-56 flex-shrink-0 grid grid-cols-2 lg:grid-cols-1 gap-3">
+                <div className="rounded-md border p-3" style={{ borderColor: "rgba(26,29,35,0.1)", background: "var(--color-paper)" }}>
+                  <p className="text-[10px] uppercase tracking-wide text-[var(--color-ink-muted)]">Comitês ativos</p>
+                  <p className="font-display text-2xl text-[var(--color-uems-navy)] mt-0.5">
+                    {stats.porSituacao.ativo ?? 0}
+                  </p>
+                </div>
+                <div className="rounded-md border p-3" style={{ borderColor: "rgba(26,29,35,0.1)", background: "var(--color-paper)" }}>
+                  <p className="text-[10px] uppercase tracking-wide text-[var(--color-ink-muted)]">Portarias geradas</p>
+                  <p className="font-display text-2xl text-[var(--color-uems-navy)] mt-0.5">
+                    {stats.totalPortarias}
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </section>

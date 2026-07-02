@@ -173,3 +173,38 @@ Stage Summary:
 - 3 features novas: modal de visualização da minuta, gráfico de evolução temporal, busca global Ctrl+K.
 - Aplicação estável e mais completa — agora é possível visualizar qualquer portaria do histórico sem precisar copiar, ver tendência temporal de geração, e buscar rapidamente de qualquer tela.
 - Próximas fases sugeridas: importação em lote via CSV, atalhos de teclado adicionais (n=novo, /=buscar), modal de confirmação custom (substituindo confirm()), exportação de minuta em PDF server-side, dashboard de membros (rotatividade).
+
+---
+Task ID: 6
+Agent: webDevReview (cron)
+Task: Ciclo de QA + 3 features (modal confirmação custom, atalhos de teclado, hero impactante).
+
+Work Log:
+- QA via agent-browser em todas as telas. Aplicação estável. Identifiquei problema de UX: ações destrutivas (encerrar/excluir comitê, excluir portaria) usavam confirm() nativo do navegador — jarring e inconsistente com a UI polida. VLM também identificou hero pouco impactante.
+- Nova feature: Sistema global de diálogo de confirmação custom (ConfirmDialog.tsx).
+  - Substitui todos os confirm() nativos por um modal Radix Dialog estilizado.
+  - Variantes: danger (vermelho), warning (dourado), info (navy) com ícones e cores apropriadas.
+  - Suporte a type-to-confirm (exigirDigitacao) para ações muito destrutivas — o usuário deve digitar o nome do curso para excluir um comitê.
+  - Hook useConfirm() retorna função async que resolve para boolean.
+  - ConfirmProvider montado uma vez no root (page.tsx).
+  - 3 handlers atualizados em Tela5Consultar: toggleStatusComite (warning), excluirPortaria (danger), excluirComite (danger + exigirDigitação do nome do curso).
+  - Testado: todos os 3 diálogos abrem corretamente, botão confirmar desabilitado até digitar o nome correto, cancelar fecha sem ação.
+- Nova feature: Atalhos de teclado globais (KeyboardShortcuts.tsx).
+  - Sequência "g + letra": g+i (Início), g+n (Gerar Portaria), g+c (Comitês & Histórico), g+s (Configurações).
+  - Ignora quando foco está em campos editáveis (input/textarea/select/contentEditable).
+  - Janela de 700ms entre o "g" e a próxima tecla.
+  - Não interfere com Ctrl+K (busca global, tratada separadamente).
+  - Testado: g+i, g+n, g+c todos navegam corretamente.
+- Feature: Hero mais impactante na Tela Início.
+  - Badge "Sistema oficial" (dourado) + selo PROE·DIGES·UEMS.
+  - Padrão decorativo sutil no canto (linhas diagonais douradas, 6% opacidade).
+  - Destaque numérico à direita (Comitês ativos + Portarias geradas) em cards paper.
+  - Dica de atalhos de teclado visível (Ctrl+K buscar, g+n nova portaria).
+  - Layout flex: texto à esquerda, stats à direita (empilha em mobile).
+- Verificação: lint 0 erros; agent-browser confirmou todos os diálogos custom funcionando (encerrar/excluir comitê com type-to-confirm, excluir portaria), atalhos g+i/n/c navegando, hero com badge + stats + dica de atalhos. VLM confirmou modal polido e institucional (não nativo), hero mais impactante.
+
+Stage Summary:
+- 3 features novas: diálogo de confirmação custom (substitui confirm() nativo com type-to-confirm para ações críticas), atalhos de teclado globais (g+i/n/c/s), hero mais impactante com badge + stats + dica de atalhos.
+- UX significativamente melhorada: ações destrutivas agora têm confirmação polida e institucional, com proteção extra (type-to-confirm) para exclusão de comitê.
+- Navegação mais rápida via teclado.
+- Próximas fases sugeridas: importação em lote via CSV, overlay de ajuda com todos os atalhos (?), dashboard de rotatividade de membros, exportação PDF server-side, histórico de auditoria (quem gerou/excluiu quando).

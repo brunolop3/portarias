@@ -10,6 +10,8 @@ import { Tela3Membros } from "@/components/cge/Tela3Membros";
 import { Tela4Geracao } from "@/components/cge/Tela4Geracao";
 import { Tela5Consultar } from "@/components/cge/Tela5Consultar";
 import { TelaConfig } from "@/components/cge/TelaConfig";
+import { ConfirmProvider } from "@/components/cge/ConfirmDialog";
+import { KeyboardShortcuts } from "@/components/cge/KeyboardShortcuts";
 
 // ===========================================================================
 // Roteamento interno por estado (single-route app).
@@ -25,6 +27,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen flex flex-col bg-[var(--color-paper)]">
+      <KeyboardShortcuts />
       <AppHeader />
       <main className="flex-1 mx-auto w-full max-w-6xl px-4 sm:px-6 py-6 sm:py-8">
         {area === "inicio" && <TelaInicio />}
@@ -43,6 +46,7 @@ export default function Home() {
         {area === "config" && <TelaConfig />}
       </main>
       <AppFooter />
+      <ConfirmProvider />
     </div>
   );
 }

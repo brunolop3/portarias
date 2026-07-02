@@ -15,6 +15,7 @@ import { dataCurta, dataPorExtenso, diasParaTermino, situacaoDoComite, terminoMa
 import { ordenarMembrosParaTabela } from "@/lib/cge/quorum";
 import { cn } from "@/lib/utils";
 import { PortariaViewerModal } from "@/components/cge/PortariaViewerModal";
+import { useConfirm } from "@/components/cge/ConfirmDialog";
 
 // ===========================================================================
 // Tela 5 — Consulta de comitês e histórico.
@@ -279,6 +280,7 @@ function PaginaCurso({ id, onBack }: { id: string; onBack: () => void }) {
   const [erro, setErro] = useState<string | null>(null);
   // Portaria selecionada para visualização no modal.
   const [portariaView, setPortariaView] = useState<PortariaGerada | null>(null);
+  const confirmar = useConfirm();
 
   useEffect(() => {
     fetch(`/api/cge/comites/${id}`)
@@ -340,9 +342,15 @@ function PaginaCurso({ id, onBack }: { id: string; onBack: () => void }) {
   async function toggleStatusComite() {
     if (!data) return;
     const novoStatus = data.comite.status === "ativo" ? "encerrado" : "ativo";
-    if (novoStatus === "encerrado" &&
-      !confirm(`Encerrar este comitê? O histórico será mantido, mas o comitê sairá da contagem de ativos. Esta ação pode ser desfeita.`)) {
-      return;
+    if (novoStatus === "encerrado") {
+      const ok = await confirmar({
+        titulo: "Encerrar este comitê?",
+        descricao:
+          "O histórico será mantido, mas o comitê sairá da contagem de ativos. Esta ação pode ser desfeita a qualquer momento.",
+        variant: "warning",
+        confirmLabel: "Encerrar comitê",
+      });
+      if (!ok) return;
     }
     try {
       const r = await fetch(`/api/cge/comites/${data.comite.id}`, {
@@ -365,7 +373,14 @@ function PaginaCurso({ id, onBack }: { id: string; onBack: () => void }) {
   // Exclui uma portaria do histórico. Pede confirmação. Não recria/remove
   // o comitê — apenas remove o registro de log.
   async function excluirPortaria(p: PortariaGerada) {
-    if (!confirm(`Excluir a Portaria n.º ${p.numeroPortaria} do histórico? Esta ação não pode ser desfeita.`)) return;
+    const ok = await confirmar({
+      titulo: `Excluir Portaria n.º ${p.numeroPortaria}?`,
+      descricao:
+        "Esta portaria será removida do histórico. O comitê não é afetado. Esta ação não pode ser desfeita.",
+      variant: "danger",
+      confirmLabel: "Excluir do histórico",
+    });
+    if (!ok) return;
     try {
       const r = await fetch(`/api/cge/portarias/${p.id}`, { method: "DELETE" });
       if (!r.ok) throw new Error("Falha ao excluir.");
@@ -377,10 +392,18 @@ function PaginaCurso({ id, onBack }: { id: string; onBack: () => void }) {
   }
 
   // Exclui o comitê inteiro (com cascata de membros e portarias).
+  // Ação destrutiva: exige digitação do nome do curso para confirmar.
   async function excluirComite() {
     if (!data) return;
-    if (!confirm(`Excluir DEFINITIVAMENTE o comitê de ${data.comite.curso}? Todos os membros e o histórico de portarias serão removidos. Esta ação NÃO pode ser desfeita.`)) return;
-    if (!confirm("Confirma novamente: esta operação apaga todos os dados deste comitê.")) return;
+    const ok = await confirmar({
+      titulo: `Excluir definitivamente o comitê de ${data.comite.curso}?`,
+      descricao:
+        "Todos os membros e o histórico de portarias serão removidos permanentemente. Esta ação NÃO pode ser desfeita.",
+      variant: "danger",
+      confirmLabel: "Excluir comitê",
+      exigirDigitacao: data.comite.curso,
+    });
+    if (!ok) return;
     try {
       const r = await fetch(`/api/cge/comites/${data.comite.id}`, { method: "DELETE" });
       if (!r.ok) throw new Error("Falha ao excluir comitê.");
