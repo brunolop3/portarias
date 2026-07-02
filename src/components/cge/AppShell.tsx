@@ -4,6 +4,7 @@ import { useCge, type Area } from "@/lib/cge/store";
 import { FileText, ListChecks, Settings, PlusCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { GlobalSearch } from "@/components/cge/GlobalSearch";
+import { HelpTrigger } from "@/components/cge/HelpOverlay";
 
 // ===========================================================================
 // Cabeçalho institucional: faixa navy sólida com DIGES em serifada dourada.
@@ -59,6 +60,7 @@ export function AppHeader() {
             Portarias do CGE
           </span>
           <GlobalSearch />
+          <HelpTrigger />
         </div>
       </div>
 

@@ -4,6 +4,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { comitePrismaParaTipo, portariaPrismaParaTipo } from "@/lib/cge/mappers";
+import { registrarAuditoria } from "@/lib/cge/auditoria";
 
 export async function GET(
   _req: NextRequest,
@@ -62,6 +63,18 @@ export async function PUT(
       include: { membros: true },
     });
 
+    // Auditoria: registra encerramento/reativação de status (não loga
+    // atualizações de membros via PUT, pois essas vêm pelo salvar portaria).
+    if (status && status !== existente.status) {
+      await registrarAuditoria(
+        status === "encerrado" ? "comite_encerrado" : "comite_reativado",
+        "comite",
+        `Comitê ${status === "encerrado" ? "encerrado" : "reativado"}: ${existente.curso} (${existente.unidadeUniversitaria})`,
+        id,
+        { curso: existente.curso, statusAntigo: existente.status, statusNovo: status }
+      );
+    }
+
     return NextResponse.json(comitePrismaParaTipo(atualizado));
   } catch (e) {
     return NextResponse.json(
@@ -77,7 +90,18 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
+    // Busca dados antes de excluir para auditoria.
+    const comite = await db.comite.findUnique({ where: { id } });
     await db.comite.delete({ where: { id } });
+    if (comite) {
+      await registrarAuditoria(
+        "comite_excluido",
+        "comite",
+        `Comitê excluído: ${comite.curso} (${comite.unidadeUniversitaria})`,
+        undefined,
+        { curso: comite.curso, unidade: comite.unidadeUniversitaria, portariaConstituicao: comite.portariaConstituicaoNumero }
+      );
+    }
     return NextResponse.json({ ok: true });
   } catch (e) {
     return NextResponse.json(

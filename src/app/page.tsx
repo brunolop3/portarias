@@ -12,6 +12,7 @@ import { Tela5Consultar } from "@/components/cge/Tela5Consultar";
 import { TelaConfig } from "@/components/cge/TelaConfig";
 import { ConfirmProvider } from "@/components/cge/ConfirmDialog";
 import { KeyboardShortcuts } from "@/components/cge/KeyboardShortcuts";
+import { HelpOverlay } from "@/components/cge/HelpOverlay";
 
 // ===========================================================================
 // Roteamento interno por estado (single-route app).
@@ -47,6 +48,7 @@ export default function Home() {
       </main>
       <AppFooter />
       <ConfirmProvider />
+      <HelpOverlay />
     </div>
   );
 }

@@ -8,6 +8,7 @@ import { db } from "@/lib/db";
 import { comitePrismaParaTipo, portariaPrismaParaTipo } from "@/lib/cge/mappers";
 import { gerarMinutaTexto } from "@/lib/cge/templates";
 import { getConfig } from "@/lib/cge/config";
+import { registrarAuditoria } from "@/lib/cge/auditoria";
 import type { TipoPortaria, Membro } from "@/lib/cge/types";
 
 async function readBody(req: NextRequest) {
@@ -126,6 +127,22 @@ export async function POST(req: NextRequest) {
       },
       include: { comite: { include: { membros: true } } },
     });
+
+    // Auditoria
+    await registrarAuditoria(
+      tipo === "Constituição" ? "comite_criado" : "comite_alterado",
+      "comite",
+      `${tipo === "Constituição" ? "Comitê criado" : "Comitê alterado"}: ${curso} (${unidade}) — Portaria n.º ${numeroPortaria}`,
+      comiteId,
+      { tipo, numeroPortaria, curso, unidade, ciNumero, membros: membros.length }
+    );
+    await registrarAuditoria(
+      "portaria_gerada",
+      "portaria",
+      `Portaria de ${tipo} n.º ${numeroPortaria} gerada para ${curso}`,
+      portaria.id,
+      { tipo, numeroPortaria, comiteId, curso }
+    );
 
     return NextResponse.json(
       {

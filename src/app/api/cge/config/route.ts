@@ -2,6 +2,7 @@
 // PUT  /api/cge/config  → atualiza configuração global
 import { NextRequest, NextResponse } from "next/server";
 import { getConfig, updateConfig } from "@/lib/cge/config";
+import { registrarAuditoria } from "@/lib/cge/auditoria";
 import type { ConfiguracaoCGE } from "@/lib/cge/types";
 
 export async function GET() {
@@ -39,6 +40,13 @@ export async function PUT(req: NextRequest) {
       }
     }
     const cfg = await updateConfig(body);
+    await registrarAuditoria(
+      "config_editada",
+      "config",
+      "Configurações globais editadas",
+      "default",
+      { resolucao431: body.resolucaoHomologacao431, resolucao432: body.resolucaoHomologacao432, signatario: body.nomeSignatario }
+    );
     return NextResponse.json(cfg);
   } catch (e) {
     return NextResponse.json(

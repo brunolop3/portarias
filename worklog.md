@@ -208,3 +208,34 @@ Stage Summary:
 - UX significativamente melhorada: ações destrutivas agora têm confirmação polida e institucional, com proteção extra (type-to-confirm) para exclusão de comitê.
 - Navegação mais rápida via teclado.
 - Próximas fases sugeridas: importação em lote via CSV, overlay de ajuda com todos os atalhos (?), dashboard de rotatividade de membros, exportação PDF server-side, histórico de auditoria (quem gerou/excluiu quando).
+
+---
+Task ID: 7
+Agent: webDevReview (cron)
+Task: Ciclo de QA + 2 features (overlay de ajuda, histórico de auditoria) + fix de Prisma client stale.
+
+Work Log:
+- QA via agent-browser. Aplicação estável. Identifiquei e corrigi problema de Prisma client stale após adicionar novo model.
+- Nova feature: Overlay de ajuda com atalhos de teclado (HelpOverlay.tsx).
+  - Abre com a tecla "?" (quando não em campo de texto) ou botão HelpCircle no cabeçalho.
+  - Mostra todos os atalhos: Navegação (g+i/n/c/s), Ações (Ctrl+K, ?, Esc), com kbd estilizados e ícones.
+  - Store Zustand para controle de abertura compartilhada entre trigger e overlay.
+  - Testado: botão no cabeçalho abre overlay, tecla ? também abre, Esc fecha.
+- Nova feature: Histórico de auditoria (rastreabilidade de ações).
+  - Novo model Prisma Auditoria (acao, entidade, entidadeId, descricao, detalhes JSON, criadoEm).
+  - Helper registrarAuditoria() em src/lib/cge/auditoria.ts — nunca quebra o fluxo principal.
+  - Auditoria integrada em todas as APIs de escrita: portarias POST (comite_criado/alterado + portaria_gerada), comites PUT (encerrado/reativado), comites DELETE (excluido), portarias DELETE (excluida), config PUT (editada).
+  - API GET /api/cge/auditoria?limite=N retorna registros ordenados do mais recente.
+  - Painel de auditoria na Tela Config: lista as últimas 30 ações com ícone/coloração por tipo (criado=navy, alterado=gold, encerrado=ambar, excluido=vermelho), timestamp e ação. Scroll máximo 96vh.
+  - Testado: salvar config cria registro "Configurações globais editadas" visível no painel.
+- Fix crítico: Prisma client stale após adicionar model Auditoria.
+  - Problema: o singleton global do PrismaClient foi criado antes do model existir; hot reload não recria o cliente, então db.auditoria era undefined.
+  - Solução: db.ts agora usa um hash dos models esperados (SCHEMA_HASH); se mudar, descarta o cliente global e cria novo. Requer restart do dev server para o novo @prisma/client ser carregado (cache do Node).
+  - Reiniciei o dev server (kill + nohup bun run dev) para limpar o cache de módulo do Node.
+- Verificação: lint 0 erros; agent-browser confirmou overlay de ajuda abrindo com ? e botão, painel de auditoria mostrando registro após salvar config. Dev log sem erros.
+
+Stage Summary:
+- 2 features novas: overlay de ajuda com atalhos (? + botão), histórico de auditoria com rastreabilidade completa.
+- Fix de Prisma client stale que impedia o novo model de funcionar.
+- Aplicação estável, todas as ações relevantes agora são auditadas.
+- Próximas fases sugeridas: dashboard de rotatividade de membros, importação em lote via CSV, exportação PDF server-side, filtros avançados no painel de auditoria (por data/ação/entidade).

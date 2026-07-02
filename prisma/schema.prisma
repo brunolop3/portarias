@@ -83,3 +83,20 @@ model Configuracao {
   cargoSignatario             String
   updatedAt                   DateTime @updatedAt
 }
+
+// ---------------------------------------------------------------------------
+// Auditoria — registro imutável de ações relevantes (criar/alterar/excluir
+// comitê ou portaria, encerrar/reativar, editar configurações). Usado para
+// rastreabilidade ("quem fez o quê e quando"). Não tem relação forte — apenas
+// guarda referências em texto para sobreviver a exclusões.
+// ---------------------------------------------------------------------------
+model Auditoria {
+  id          String   @id @default(cuid())
+  acao        String   // "comite_criado" | "comite_alterado" | "comite_encerrado" | "comite_reativado" | "comite_excluido" | "portaria_gerada" | "portaria_excluida" | "config_editada"
+  entidade    String   // "comite" | "portaria" | "config"
+  entidadeId  String?  // id da entidade (null se foi excluída)
+  descricao   String   // texto legível: "Comitê de Direito criado"
+  detalhes    String?  // JSON com contexto adicional (curso, nº portaria, etc.)
+  criadoEm    DateTime @default(now())
+}
+

@@ -4,6 +4,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { portariaPrismaParaTipo } from "@/lib/cge/mappers";
+import { registrarAuditoria } from "@/lib/cge/auditoria";
 
 export async function GET(
   req: NextRequest,
@@ -52,7 +53,17 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
+    const portaria = await db.portaria.findUnique({ where: { id } });
     await db.portaria.delete({ where: { id } });
+    if (portaria) {
+      await registrarAuditoria(
+        "portaria_excluida",
+        "portaria",
+        `Portaria excluída do histórico: n.º ${portaria.numeroPortaria} (${portaria.tipo})`,
+        undefined,
+        { numeroPortaria: portaria.numeroPortaria, tipo: portaria.tipo, comiteId: portaria.comiteId }
+      );
+    }
     return NextResponse.json({ ok: true });
   } catch (e) {
     return NextResponse.json(
