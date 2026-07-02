@@ -41,6 +41,9 @@ function ListaCursos() {
   const [erro, setErro] = useState<string | null>(null);
   const [busca, setBusca] = useState("");
   const [filtroSit, setFiltroSit] = useState<string>("todos");
+  const [filtroGrau, setFiltroGrau] = useState<string>("todos");
+  const [filtroUnidade, setFiltroUnidade] = useState<string>("todas");
+  const [exportandoCsv, setExportandoCsv] = useState(false);
 
   useEffect(() => {
     fetch("/api/cge/comites")
@@ -55,6 +58,11 @@ function ListaCursos() {
       .finally(() => setLoading(false));
   }, []);
 
+  // Lista de unidades distintas para o filtro (ordenada).
+  const unidadesDisponiveis = Array.from(
+    new Set(comites.map((c) => c.unidadeUniversitaria))
+  ).sort((a, b) => a.localeCompare(b, "pt-BR"));
+
   const filtrados = comites.filter((c) => {
     const q = busca.trim().toLowerCase();
     const matchBusca = !q ||
@@ -62,8 +70,35 @@ function ListaCursos() {
       c.unidadeUniversitaria.toLowerCase().includes(q);
     const sit = situacaoDoComite(c.status, c.portariaConstituicaoData);
     const matchSit = filtroSit === "todos" || sit === filtroSit;
-    return matchBusca && matchSit;
+    const matchGrau = filtroGrau === "todos" || c.grau === filtroGrau;
+    const matchUnidade = filtroUnidade === "todas" || c.unidadeUniversitaria === filtroUnidade;
+    return matchBusca && matchSit && matchGrau && matchUnidade;
   });
+
+  // Exporta relatório CSV completo (ignora filtros — é um relatório global).
+  async function exportarCsv() {
+    setExportandoCsv(true);
+    try {
+      const r = await fetch("/api/cge/exportar-csv");
+      if (!r.ok) throw new Error("Falha ao gerar relatório.");
+      const blob = await r.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      const cd = r.headers.get("Content-Disposition") || "";
+      const m = cd.match(/filename="?([^";]+)"?/);
+      a.download = m ? decodeURIComponent(m[1]) : "relatorio_cge.csv";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      toast.success("Relatório CSV baixado.");
+    } catch (e) {
+      toast.error("Erro: " + (e as Error).message);
+    } finally {
+      setExportandoCsv(false);
+    }
+  }
 
   const contagem = comites.reduce((acc, c) => {
     const sit = situacaoDoComite(c.status, c.portariaConstituicaoData);
@@ -100,6 +135,63 @@ function ListaCursos() {
             <FiltroChip label={`Vencidos (${contagem.vencido || 0})`} ativo={filtroSit === "vencido"} onClick={() => setFiltroSit("vencido")} />
             <FiltroChip label={`Encerrados (${contagem.encerrado || 0})`} ativo={filtroSit === "encerrado"} onClick={() => setFiltroSit("encerrado")} />
           </div>
+        </div>
+
+        {/* Filtros refinados (grau + unidade) + exportação CSV */}
+        <div className="mt-3 pt-3 border-t flex flex-col sm:flex-row gap-3 sm:items-center justify-between" style={{ borderColor: "rgba(26,29,35,0.08)" }}>
+          <div className="flex items-center gap-3 flex-wrap">
+            <div className="flex items-center gap-1.5">
+              <label className="text-xs text-[var(--color-ink-muted)] whitespace-nowrap">Grau:</label>
+              <select
+                value={filtroGrau}
+                onChange={(e) => setFiltroGrau(e.target.value)}
+                className="text-xs rounded-md border bg-white px-2 py-1 focus:outline-none focus:ring-1 focus:ring-[var(--color-uems-navy)]"
+                style={{ borderColor: "rgba(26,29,35,0.16)" }}
+              >
+                <option value="todos">Todos</option>
+                <option value="bacharelado">Bacharelado</option>
+                <option value="licenciatura">Licenciatura</option>
+              </select>
+            </div>
+            {unidadesDisponiveis.length > 0 && (
+              <div className="flex items-center gap-1.5">
+                <label className="text-xs text-[var(--color-ink-muted)] whitespace-nowrap">Unidade:</label>
+                <select
+                  value={filtroUnidade}
+                  onChange={(e) => setFiltroUnidade(e.target.value)}
+                  className="text-xs rounded-md border bg-white px-2 py-1 max-w-[180px] focus:outline-none focus:ring-1 focus:ring-[var(--color-uems-navy)]"
+                  style={{ borderColor: "rgba(26,29,35,0.16)" }}
+                >
+                  <option value="todas">Todas</option>
+                  {unidadesDisponiveis.map((u) => (
+                    <option key={u} value={u}>{u}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+            {(filtroGrau !== "todos" || filtroUnidade !== "todas" || busca) && (
+              <button
+                type="button"
+                onClick={() => { setFiltroGrau("todos"); setFiltroUnidade("todas"); setBusca(""); }}
+                className="text-xs text-[var(--color-uems-navy)] hover:underline"
+              >
+                Limpar filtros
+              </button>
+            )}
+            <span className="text-xs text-[var(--color-ink-muted)] ml-auto sm:ml-0">
+              {filtrados.length} de {comites.length} comitê(s)
+            </span>
+          </div>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={exportarCsv}
+            disabled={exportandoCsv || comites.length === 0}
+            className="border-[rgba(26,29,35,0.2)] h-8"
+          >
+            <Download className="h-3.5 w-3.5 mr-1.5" />
+            {exportandoCsv ? "Gerando..." : "Exportar CSV"}
+          </Button>
         </div>
       </Card>
 

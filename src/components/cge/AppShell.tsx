@@ -37,9 +37,11 @@ export function AppHeader() {
 
   return (
     <header
-      className="w-full"
+      className="w-full sticky top-0 z-30 shadow-sm"
       style={{ background: "var(--color-uems-navy)", color: "#fff" }}
     >
+      {/* Faixa dourada fina no topo — acento institucional */}
+      <div className="h-0.5" style={{ background: "var(--color-uems-gold)" }} />
       {/* Linha superior: selo institucional */}
       <div className="border-b border-white/10">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 py-2 flex items-center justify-between gap-4">
@@ -76,7 +78,7 @@ export function AppHeader() {
                   )}
                   aria-current={ativo ? "page" : undefined}
                 >
-                  <Icon className="h-4 w-4" aria-hidden />
+                  <Icon className={cn("h-4 w-4 transition-transform", ativo && "scale-110")} aria-hidden />
                   <span className="whitespace-nowrap">{item.label}</span>
                   {ativo && <span className="nav-active-bar" aria-hidden />}
                 </button>

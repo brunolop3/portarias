@@ -111,3 +111,35 @@ Stage Summary:
 - Tela 4 ganha exportação PDF além do .docx.
 - Styling refinado: foco visível, transições, animações de dropdown, print styles.
 - Próxima fase: possíveis features adicionais (busca avançada com filtros combinados, exportar histórico em CSV, dashboard de evolução temporal, validação de nº de portaria duplicado, multi-idioma, etc.).
+
+---
+Task ID: 4
+Agent: webDevReview (cron)
+Task: Ciclo de QA + 3 novas features + polish visual.
+
+Work Log:
+- QA via agent-browser em todas as telas e fluxos (Início, Gerar Portaria 1-4, Comitês & Histórico, Configurações). Testei criação de Constituição (Medicina/Campo Grande), filtro de busca, lista de consulta, mobile viewport (375px). Nenhum bug crítico encontrado — aplicação estável.
+- Nova feature: Validação de nº de portaria duplicado em tempo real (Tela 2).
+  - API GET /api/cge/verificar-portaria?numero=X: retorna {duplicado, portaria{tipo,curso,unidade}}.
+  - Tela2Dados: useEffect com debounce 500ms verifica o número digitado; mostra spinner "Verificando…", aviso vermelho "Já existe uma Portaria n.º X (tipo) no comitê de CURSO — UNIDADE" (com borda vermelha no input), ou check verde "Número disponível."
+  - Testado com nº 1.234 (duplicado → aviso) e 9.999 (disponível → check).
+- Nova feature: Busca avançada + filtros combinados na lista de comitês (Tela 5).
+  - Adicionados seletores de Grau (Todos/Bacharelado/Licenciatura) e Unidade (lista dinâmica das unidades cadastradas).
+  - Filtros combinados: busca textual + situação + grau + unidade.
+  - Botão "Limpar filtros" aparece quando há filtros ativos.
+  - Indicador de contagem "X de Y comitê(s)".
+- Nova feature: Exportar relatório em CSV.
+  - API GET /api/cge/exportar-csv: gera CSV com BOM UTF-8, separador ; (compatível Excel pt-BR), 14 colunas (Curso, Grau, Unidade, Status, Portaria Constituição, Data, Término Mandato, Tipo Portaria, Nº, Data, CI, Qtd Membros, Presidentes, Coordenadores). Uma linha por portaria.
+  - Botão "Exportar CSV" na lista de consulta (canto inferior direito do card de filtros).
+  - Testado: 4 linhas geradas corretamente (1 constituição + 1 alteração + 2 constituições).
+- Melhorias de styling:
+  - AppHeader: agora sticky top-0 z-30 (fica fixo ao rolar), faixa dourada fina (h-0.5) no topo como acento institucional, shadow-sm, ícone do item ativo com scale-110.
+  - Consulta: filtros refinados organizados em segunda linha com border-t separador, labels pequenas, contagem e botão CSV alinhados.
+  - Tela 2: indicador de duplicidade com spinner animado, ícones de alerta/check.
+- Verificação: lint 0 erros; agent-browser confirmou todas as features funcionando (filtros combinados, CSV export com toast de sucesso, validação de duplicidade nos 3 estados). VLM confirmou header polido com faixa dourada e item ativo destacado.
+
+Stage Summary:
+- Aplicação estável, sem bugs críticos após QA abrangente (desktop + mobile).
+- 3 features novas: validação de duplicidade em tempo real, filtros combinados avançados, exportação CSV.
+- Header refinado: sticky, faixa dourada de acento, ícones com feedback.
+- Próximas fases sugeridas: dashboard de evolução temporal (gráfico de portarias por mês), busca global, modal de detalhes da portaria ao clicar na timeline, atalhos de teclado, importação em lote via CSV.

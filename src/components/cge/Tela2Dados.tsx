@@ -4,7 +4,7 @@ import { useCge } from "@/lib/cge/store";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ChevronLeft, ChevronRight, Upload, FileText, Sparkles, AlertTriangle, CheckCircle2 } from "lucide-react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import type { ExtracaoCI } from "@/lib/cge/types";
 import { cn } from "@/lib/utils";
@@ -30,8 +30,42 @@ export function Tela2Dados() {
   const [importando, setImportando] = useState(false);
   const [ciAnexada, setCiAnexada] = useState<File | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  // Verificação de número de portaria duplicado (debounced).
+  const [dupCheck, setDupCheck] = useState<{
+    verificando: boolean;
+    duplicado: boolean;
+    info?: { tipo: string; curso: string; unidade: string };
+  }>({ verificando: false, duplicado: false });
 
   const bloqueadoCurso = tipo === "Alteração";
+
+  // Verifica duplicidade do número da portaria com debounce de 500ms.
+  useEffect(() => {
+    const num = numeroPortaria.trim();
+    if (!num) {
+      setDupCheck({ verificando: false, duplicado: false });
+      return;
+    }
+    setDupCheck({ verificando: true, duplicado: false });
+    const t = setTimeout(async () => {
+      try {
+        const r = await fetch(`/api/cge/verificar-portaria?numero=${encodeURIComponent(num)}`);
+        const d = await r.json();
+        if (d.duplicado) {
+          setDupCheck({
+            verificando: false,
+            duplicado: true,
+            info: { tipo: d.portaria.tipo, curso: d.portaria.curso, unidade: d.portaria.unidade },
+          });
+        } else {
+          setDupCheck({ verificando: false, duplicado: false });
+        }
+      } catch {
+        setDupCheck({ verificando: false, duplicado: false });
+      }
+    }, 500);
+    return () => clearTimeout(t);
+  }, [numeroPortaria]);
 
   function validarAvanco(): boolean {
     if (!numeroPortaria.trim()) return false;
@@ -189,8 +223,35 @@ export function Tela2Dados() {
               value={numeroPortaria}
               onChange={(e) => setCampo("numeroPortaria", e.target.value)}
               placeholder="Ex.: 1.234"
-              className={inputCls}
+              className={cn(
+                inputCls,
+                dupCheck.duplicado && "border-[var(--color-alert)] focus:border-[var(--color-alert)] focus:ring-[var(--color-alert)]"
+              )}
             />
+            {/* Indicador de duplicidade em tempo real */}
+            {numeroPortaria.trim() && (
+              <div className="mt-1.5 text-xs">
+                {dupCheck.verificando ? (
+                  <span className="text-[var(--color-ink-muted)] flex items-center gap-1">
+                    <span className="inline-block h-3 w-3 border-2 border-[var(--color-ink-muted)] border-t-transparent rounded-full animate-spin" />
+                    Verificando…
+                  </span>
+                ) : dupCheck.duplicado ? (
+                  <span className="text-[var(--color-alert)] flex items-start gap-1">
+                    <AlertTriangle className="h-3.5 w-3.5 flex-shrink-0 mt-0.5" />
+                    <span>
+                      Já existe uma Portaria n.º {numeroPortaria} ({dupCheck.info?.tipo}) no
+                      comitê de <strong>{dupCheck.info?.curso}</strong> — {dupCheck.info?.unidade}.
+                      Confira antes de prosseguir.
+                    </span>
+                  </span>
+                ) : (
+                  <span className="text-[#1f6b3a] flex items-center gap-1">
+                    <CheckCircle2 className="h-3.5 w-3.5" /> Número disponível.
+                  </span>
+                )}
+              </div>
+            )}
           </Field>
           <Field label="Data da nova Portaria" required>
             <input
