@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Source_Serif_4, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
+import { ThemeProvider } from "next-themes";
 
 // Tipografia institucional UEMS/DIGES
 const inter = Inter({
@@ -40,8 +41,15 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${sourceSerif.variable} ${plexMono.variable} antialiased bg-background text-foreground`}
       >
-        {children}
-        <Toaster richColors position="top-right" />
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="light"
+          enableSystem={false}
+          disableTransitionOnChange
+        >
+          {children}
+          <Toaster richColors position="top-right" />
+        </ThemeProvider>
       </body>
     </html>
   );

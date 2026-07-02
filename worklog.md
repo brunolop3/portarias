@@ -301,3 +301,30 @@ Stage Summary:
 - Página do curso agora tem membros interativos (clique para ver histórico).
 - Painel de auditoria agora é totalmente filtrável (texto, ação, entidade, período).
 - Próximas fases sugeridas: importação em lote via CSV, exportação PDF server-side, gráfico de evolução de membros por curso, notificações de mandatos vencendo, modo escuro.
+
+---
+Task ID: 10
+Agent: webDevReview (cron)
+Task: Ciclo de QA + 2 features (modo escuro, página de alertas/notificações).
+
+Work Log:
+- QA via agent-browser em todas as telas (desktop + mobile 375px). Aplicação estável, responsiva, sem bugs críticos.
+- Nova feature: Modo escuro (dark mode) com next-themes.
+  - globals.css: adicionado bloco .dark com paleta institucional adaptada — navy vira #4A78D8 (azul mais claro para contraste), gold vira #D9B85E, paper vira #0F1419 (cinza-azulado escuro), ink vira #E8E6E1 (branco quente). Bordas com opacity sobre texto claro. Alerta #E5534C.
+  - layout.tsx: adicionado ThemeProvider (attribute="class", defaultTheme="light", enableSystem=false, disableTransitionOnChange).
+  - ThemeToggle component: botão no cabeçalho (Sun/Moon icons), alterna entre light/dark, persiste em localStorage.
+  - VLM confirmou: tema escuro com fundo escuro, texto claro, cores adaptadas, sem problemas de contraste.
+- Nova feature: Página de Alertas de mandatos + sino de notificações.
+  - API GET /api/cge/alertas: retorna comitês ativos com mandato vencido ou vencendo (<=90 dias), ordenados por urgência (vencidos primeiro, depois vencendo por menor dias). Inclui totais (total, vencidos, vencendo).
+  - TelaAlertas component: 3 cards de resumo (Total, Vencidos, Vencendo), lista de alertas com badge (VENCIDO vermelho / "Vence em Xd" dourado), curso/grau/unidade/portaria/membros/data de término, botão "Ver comitê" que navega para a página do curso. Empty state amigável quando não há alertas.
+  - NotificationBell component: sino no cabeçalho com badge vermelho mostrando contagem de alertas (atualiza a cada 60s), clique navega para TelaAlertas. Badge mostra "9+" se >9.
+  - Area "alertas" adicionada ao store e ao roteamento do page.tsx.
+  - Testado: criado comitê de Administração com data 2022 (mandato vencido), sino mostrou badge "1", página de alertas mostrou card VENCIDO com todos os dados. Limpei os dados de teste após.
+- Cabeçalho agora tem 4 botões de ação: Buscar (Ctrl+K), Alertas (sino), Ajuda (?), Tema (Sun/Moon).
+- Verificação: lint 0 erros; agent-browser confirmou dark mode alternando, sino com badge, página de alertas com dados e empty state. VLM confirmou dark mode polido e alertas claros.
+
+Stage Summary:
+- 2 features novas: modo escuro completo (paleta adaptada, toggle persistente), página de alertas com sino de notificações (mandatos vencidos/vencendo).
+- Cabeçalho enriquecido com 4 ações rápidas (busca, alertas, ajuda, tema).
+- Aplicação agora oferece experiência completa em claro e escuro, com alertas proativos de mandatos.
+- Próximas fases sugeridas: importação em lote via CSV, exportação PDF server-side, gráfico de evolução de membros por curso, filtros salvos, acessibilidade (ARRO expanded), PWA.

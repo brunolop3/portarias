@@ -126,6 +126,64 @@
   --sidebar-ring: #C8A84B;
 }
 
+/* =========================================================================
+   Modo escuro — paleta institucional adaptada para dark.
+   Navy vira um azul-escuro profundo, paper vira um cinza-azulado escuro,
+   ink vira branco quente. Acentos dourado e alerta mantêm bom contraste.
+   ========================================================================= */
+.dark {
+  --color-uems-navy: #4A78D8;
+  --color-uems-navy-deep: #2A5AB8;
+  --color-uems-gold: #D9B85E;
+  --color-paper: #0F1419;
+  --color-ink: #E8E6E1;
+  --color-ink-muted: #9BA3B0;
+  --color-alert: #E5534C;
+
+  --background: #0F1419;
+  --foreground: #E8E6E1;
+
+  --card: #161B22;
+  --card-foreground: #E8E6E1;
+
+  --popover: #161B22;
+  --popover-foreground: #E8E6E1;
+
+  --primary: #4A78D8;
+  --primary-foreground: #0F1419;
+
+  --secondary: #1F2630;
+  --secondary-foreground: #E8E6E1;
+
+  --muted: #1F2630;
+  --muted-foreground: #9BA3B0;
+
+  --accent: #2A2410;
+  --accent-foreground: #E8E6E1;
+
+  --destructive: #E5534C;
+  --destructive-foreground: #0F1419;
+
+  --border: rgba(232, 230, 225, 0.14);
+  --input: rgba(232, 230, 225, 0.18);
+  --ring: #4A78D8;
+
+  --chart-1: #4A78D8;
+  --chart-2: #D9B85E;
+  --chart-3: #9BA3B0;
+  --chart-4: #2A5AB8;
+  --chart-5: #E5534C;
+
+  --sidebar: #0A0D11;
+  --sidebar-foreground: #E8E6E1;
+  --sidebar-primary: #D9B85E;
+  --sidebar-primary-foreground: #0A0D11;
+  --sidebar-accent: rgba(217, 184, 94, 0.18);
+  --sidebar-accent-foreground: #E8E6E1;
+  --sidebar-border: rgba(232, 230, 225, 0.10);
+  --sidebar-ring: #D9B85E;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

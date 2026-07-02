@@ -17,7 +17,7 @@ import type {
   ConfiguracaoCGE,
 } from "@/lib/cge/types";
 
-export type Area = "inicio" | "novo" | "consultar" | "config";
+export type Area = "inicio" | "novo" | "consultar" | "config" | "alertas";
 
 // Etapas dentro do fluxo "novo" (Tela 1 → 2 → 3 → 4).
 export type Etapa = 1 | 2 | 3 | 4;
