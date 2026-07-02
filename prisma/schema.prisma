@@ -1,0 +1,85 @@
+// Prisma schema — CGE/UEMS Portarias
+// Aplicação para registro e geração de minutas de Portarias dos
+// Comitês de Gestão do Enade (CGE) da UEMS.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Comitê de Gestão do Enade — um por curso + unidade universitária.
+// Guarda a portaria de constituição original e a lista de membros atuais.
+// ---------------------------------------------------------------------------
+model Comite {
+  id                          String   @id @default(cuid())
+  curso                       String
+  grau                        String   // "bacharelado" | "licenciatura"
+  unidadeUniversitaria        String
+  portariaConstituicaoNumero  String
+  portariaConstituicaoData    DateTime
+  status                      String   @default("ativo") // "ativo" | "encerrado"
+  createdAt                   DateTime @default(now())
+  updatedAt                   DateTime @updatedAt
+
+  // Membros atuais em exercício (snapshot da última alteração/constituição).
+  membros                     Membro[]
+
+  // Histórico de todas as portarias geradas para este comitê.
+  portarias                   Portaria[]
+
+  @@unique([curso, unidadeUniversitaria])
+}
+
+// ---------------------------------------------------------------------------
+// Membro de um comitê. função: "Presidente" | "Coordenador(a) do Curso - Membro Nato" | "Membro"
+// ---------------------------------------------------------------------------
+model Membro {
+  id        String  @id @default(cuid())
+  nome      String
+  funcao    String
+  comiteId  String
+  comite    Comite @relation(fields: [comiteId], references: [id], onDelete: Cascade)
+}
+
+// ---------------------------------------------------------------------------
+// Portaria gerada (log/histórico). Cada registro é uma minuta gerada e
+// (opcionalmente) salva no histórico. Pode ser de Constituição ou Alteração.
+// ---------------------------------------------------------------------------
+model Portaria {
+  id                          String   @id @default(cuid())
+  tipo                        String   // "Constituição" | "Alteração"
+  numeroPortaria              String
+  dataPortaria                DateTime
+  ciNumero                    String
+  ciArquivoNome               String?  // nome do arquivo anexado, se houver
+  ciArquivoMime               String?
+  ciArquivoBytes              Bytes?   // cópia do arquivo da CI (PDF/imagem/docx)
+  comiteId                    String
+  comite                      Comite   @relation(fields: [comiteId], references: [id], onDelete: Cascade)
+  textoGerado                 String
+  // Snapshot da composição do comitê nesta versão (JSON serializado).
+  composicaoJson              String
+  criadoEm                    DateTime @default(now())
+}
+
+// ---------------------------------------------------------------------------
+// Configurações globais editáveis (texto fixo das portarias que pode mudar
+// no futuro por nova normativa). Sempre uma única linha (id fixo = "default").
+// ---------------------------------------------------------------------------
+model Configuracao {
+  id                          String   @id @default("default")
+  resolucaoHomologacao431     String
+  resolucaoHomologacao432     String
+  dataDeliberacao431          DateTime
+  dataDeliberacao432          DateTime
+  portariaDelegacaoCompetencia String
+  resolucaoCouni              String
+  nomeSignatario              String
+  cargoSignatario             String
+  updatedAt                   DateTime @updatedAt
+}
