@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import {
   Search, ChevronRight, ChevronLeft, ArrowLeft, Users, FileText, Download,
   Calendar, History, UserCheck, AlertTriangle, Building2, GraduationCap,
-  MoreVertical, Pause, Play, Trash2, Copy, Eye,
+  MoreVertical, Pause, Play, Trash2, Copy, Eye, Edit, Eye as EyeIcon,
 } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import { toast } from "sonner";
@@ -15,6 +15,7 @@ import { dataCurta, dataPorExtenso, diasParaTermino, situacaoDoComite, terminoMa
 import { ordenarMembrosParaTabela } from "@/lib/cge/quorum";
 import { cn } from "@/lib/utils";
 import { PortariaViewerModal } from "@/components/cge/PortariaViewerModal";
+import { PortariaEditModal } from "@/components/cge/PortariaEditModal";
 import { MemberDetailsModal } from "@/components/cge/MemberDetailsModal";
 import { useConfirm } from "@/components/cge/ConfirmDialog";
 
@@ -281,6 +282,8 @@ function PaginaCurso({ id, onBack }: { id: string; onBack: () => void }) {
   const [erro, setErro] = useState<string | null>(null);
   // Portaria selecionada para visualização no modal.
   const [portariaView, setPortariaView] = useState<PortariaGerada | null>(null);
+  // Portaria selecionada para edição no modal.
+  const [portariaEdit, setPortariaEdit] = useState<PortariaGerada | null>(null);
   // Membro selecionado para visualização do histórico.
   const [membroView, setMembroView] = useState<string | null>(null);
   const confirmar = useConfirm();
@@ -295,6 +298,14 @@ function PaginaCurso({ id, onBack }: { id: string; onBack: () => void }) {
       .catch(() => setErro("Falha de rede."))
       .finally(() => setLoading(false));
   }, [id]);
+
+  // Recarrega os dados do comitê (usado após editar/excluir portaria).
+  function recarregar() {
+    fetch(`/api/cge/comites/${id}`)
+      .then((r) => r.json())
+      .then((d) => { if (d && d.comite) setData(d); })
+      .catch(() => {});
+  }
 
   function handleAlterar() {
     if (!data) return;
@@ -387,8 +398,8 @@ function PaginaCurso({ id, onBack }: { id: string; onBack: () => void }) {
     try {
       const r = await fetch(`/api/cge/portarias/${p.id}`, { method: "DELETE" });
       if (!r.ok) throw new Error("Falha ao excluir.");
-      setData((d) => d ? { ...d, portarias: d.portarias.filter((x) => x.id !== p.id) } : d);
       toast.success("Portaria excluída do histórico.");
+      recarregar();
     } catch (e) {
       toast.error("Erro: " + (e as Error).message);
     }
@@ -586,7 +597,12 @@ function PaginaCurso({ id, onBack }: { id: string; onBack: () => void }) {
                       className="bg-[var(--color-uems-navy)] hover:bg-[var(--color-uems-navy-deep)] text-white h-8">
                       <Eye className="h-3.5 w-3.5 mr-1" /> Visualizar
                     </Button>
-                    <Button size="sm" variant="outline" onClick={() => copiarTexto(p)} className="border-[rgba(26,29,35,0.2)] h-8">
+                    <Button size="sm" variant="outline" onClick={() => setPortariaEdit(p)}
+                      className="border-[var(--color-uems-navy)] text-[var(--color-uems-navy)] hover:bg-[var(--color-uems-navy)]/5 h-8"
+                      title="Editar portaria">
+                      <Edit className="h-3.5 w-3.5 mr-1" /> Editar
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => copiarTexto(p)} className="border-[rgba(26,29,35,0.2)] h-8" title="Copiar minuta">
                       <Copy className="h-3.5 w-3.5" />
                       <span className="sr-only">Copiar minuta</span>
                     </Button>
@@ -595,10 +611,10 @@ function PaginaCurso({ id, onBack }: { id: string; onBack: () => void }) {
                       <Download className="h-3.5 w-3.5" />
                       <span className="sr-only">Baixar CI</span>
                     </Button>
-                    <Button size="sm" variant="ghost" onClick={() => excluirPortaria(p)}
-                      className="h-8 w-8 p-0 text-[var(--color-ink-muted)] hover:text-[var(--color-alert)] hover:bg-[var(--color-alert)]/10"
-                      aria-label="Excluir portaria do histórico" title="Excluir do histórico">
-                      <Trash2 className="h-3.5 w-3.5" />
+                    <Button size="sm" variant="outline" onClick={() => excluirPortaria(p)}
+                      className="border-[var(--color-alert)]/30 text-[var(--color-alert)] hover:bg-[var(--color-alert)]/10 h-8"
+                      title="Excluir do histórico">
+                      <Trash2 className="h-3.5 w-3.5 mr-1" /> Excluir
                     </Button>
                   </div>
                 </div>
@@ -613,6 +629,14 @@ function PaginaCurso({ id, onBack }: { id: string; onBack: () => void }) {
         portaria={portariaView}
         aberto={!!portariaView}
         onFechar={() => setPortariaView(null)}
+      />
+
+      {/* Modal de edição da portaria */}
+      <PortariaEditModal
+        portaria={portariaEdit}
+        aberto={!!portariaEdit}
+        onFechar={() => setPortariaEdit(null)}
+        onSalvo={recarregar}
       />
 
       {/* Modal de detalhes do membro (histórico de participações) */}
