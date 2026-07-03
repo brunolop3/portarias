@@ -409,3 +409,22 @@ Stage Summary:
 - Edição de portarias implementada end-to-end (API PUT + modal + botão Editar na UI).
 - Botão Excluir tornado mais visível (texto + borda vermelha).
 - Próximas fases sugeridas: continuar refinando, adicionar mais validações, importação em lote.
+
+---
+Task ID: 14
+Agent: main (Z.ai Code)
+Task: Apagar portarias de exemplo e corrigir bug do preview em outra aba (Service Worker cacheando conteúdo stale).
+
+Work Log:
+- Apagadas todas as portarias de exemplo: excluí os 3 comitês de teste (Direito/Dourados, Matemática/Dourados, Medicina/Campo Grande) via API DELETE, com cascata de membros e portarias. Banco agora está limpo (0 comitês).
+- Bug do preview em outra aba corrigido: o Service Worker (adicionado no ciclo 12 para PWA) estava cacheando o shell da aplicação em desenvolvimento, causando conteúdo stale quando o usuário abria o preview em outra aba.
+  - Causa: o SW interceptava requisições e servia versões cacheadas, competindo com o HMR do Next.js dev server.
+  - Fix: ServiceWorkerRegister agora só registra o SW em produção (process.env.NODE_ENV === "production"). Em desenvolvimento, não registra.
+  - SW existente desregistrado via agent-browser (navigator.serviceWorker.getRegistrations().unregister()) e caches limpos (caches.delete).
+  - Verificado: após reload, SW desativado, tema light, aplicação funcionando sem erros.
+- Verificação: lint 0 erros; agent-browser confirmou aplicação limpa, estado vazio adequado em todas as telas (consulta mostra "Constituir novo comitê"), sem erros no console.
+
+Stage Summary:
+- Portarias de exemplo removidas — banco limpo para uso real.
+- Bug do preview em outra aba corrigido — SW desativado em desenvolvimento.
+- Aplicação pronta para uso real com dados próprios.

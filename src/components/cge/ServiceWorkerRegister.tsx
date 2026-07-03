@@ -3,16 +3,19 @@
 import { useEffect } from "react";
 
 // ===========================================================================
-// Registra o Service Worker em produção (ou quando disponível).
-// Em desenvolvimento, o SW pode interferir com HMR, então registramos
-// apenas se o navegador suportar e o arquivo existir.
+// Registra o Service Worker apenas em produção.
+// Em desenvolvimento (NODE_ENV !== "production"), o SW causa problemas de
+// cache stale e interfere com HMR, deixando o preview "bugado" em outras
+// abas. Por isso, só registramos em build de produção.
 // ===========================================================================
 
 export function ServiceWorkerRegister() {
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (!("serviceWorker" in navigator)) return;
-    // Registra após o load para não competir com recursos críticos.
+    // Não registra em desenvolvimento.
+    if (process.env.NODE_ENV !== "production") return;
+
     function registrar() {
       navigator.serviceWorker
         .register("/sw.js")
