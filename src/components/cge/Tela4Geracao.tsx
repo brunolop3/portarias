@@ -156,7 +156,7 @@ export function Tela4Geracao() {
 <div class="timbre">
   <p class="u">UNIVERSIDADE ESTADUAL DE MATO GROSSO DO SUL</p>
   <p>PRÓ-REITORIA DE ENSINO — PROE</p>
-  <p>DIRETORIA DE GESTÃO DO ENSINO — DIGES</p>
+  <p>DIVISÃO DE GESTÃO DO ENADE E INDICADORES DA EDUCAÇÃO SUPERIOR — DIGES</p>
 </div>
 ${blocos.join("\n")}
 <div class="ass">

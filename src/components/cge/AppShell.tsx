@@ -56,7 +56,7 @@ export function AppHeader() {
               DIGES
             </span>
             <span className="text-[11px] sm:text-xs text-white/70 leading-tight truncate">
-              Diretoria de Gestão do Ensino · PROE/UEMS
+              Divisão de Gestão do ENADE e Indicadores da Educação Superior · PROE/UEMS
             </span>
           </div>
           <span className="hidden sm:inline text-[11px] text-white/50 font-data whitespace-nowrap">
@@ -119,12 +119,12 @@ export function AppFooter() {
             DIGES
           </span>
           <span className="hidden sm:inline text-[10px] uppercase tracking-wide text-[var(--color-ink-muted)] leading-tight">
-            Diretoria de Gestão<br />do Ensino · PROE/UEMS
+            Divisão de Gestão do ENADE<br/>e Indicadores da Educação Superior · PROE/UEMS
           </span>
         </div>
         <p className="text-xs text-[var(--color-ink-muted)] leading-snug max-w-md">
           Universidade Estadual de Mato Grosso do Sul · Pró-Reitoria de Ensino (PROE) ·
-          Diretoria de Gestão do Ensino (DIGES). Sistema interno de geração de Portarias do CGE.
+          Divisão de Gestão do ENADE e Indicadores da Educação Superior (DIGES). Sistema interno de geração de Portarias do CGE.
         </p>
       </div>
     </footer>

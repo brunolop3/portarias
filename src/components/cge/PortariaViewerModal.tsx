@@ -127,7 +127,7 @@ th { background: #F2F2EE; font-weight: bold; }
 .ass { text-align: center; margin-top: 1.6rem; } .ass .nome { font-weight: bold; text-transform: uppercase; }
 </style></head><body>
 <div class="timbre"><p class="u">UNIVERSIDADE ESTADUAL DE MATO GROSSO DO SUL</p>
-<p>PRÓ-REITORIA DE ENSINO — PROE</p><p>DIRETORIA DE GESTÃO DO ENSINO — DIGES</p></div>
+<p>PRÓ-REITORIA DE ENSINO — PROE</p><p>DIVISÃO DE GESTÃO DO ENADE E INDICADORES DA EDUCAÇÃO SUPERIOR — DIGES</p></div>
 ${blocos.join("\n")}
 <script>window.onload=function(){setTimeout(function(){window.print();},300);};</script>
 </body></html>`);

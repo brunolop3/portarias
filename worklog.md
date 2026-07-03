@@ -428,3 +428,21 @@ Stage Summary:
 - Portarias de exemplo removidas — banco limpo para uso real.
 - Bug do preview em outra aba corrigido — SW desativado em desenvolvimento.
 - Aplicação pronta para uso real com dados próprios.
+
+---
+Task ID: 15
+Agent: main (Z.ai Code)
+Task: Corrigir o nome da DIGES de "Diretoria de Gestão do Ensino" para "Divisão de Gestão do ENADE e Indicadores da Educação Superior".
+
+Work Log:
+- Substituídas todas as ocorrências de "Diretoria de Gestão do Ensino" por "Divisão de Gestão do ENADE e Indicadores da Educação Superior" em:
+  - AppShell.tsx (cabeçalho: subtítulo ao lado de "DIGES"; rodapé: texto institucional e legenda)
+  - Tela4Geracao.tsx (timbre do preview da minuta + HTML da janela de impressão)
+  - PortariaViewerModal.tsx (timbre do modal + HTML da janela de impressão)
+  - exportar-docx/route.ts (timbre do .docx gerado)
+- Versões em maiúsculas (timbres): "DIVISÃO DE GESTÃO DO ENADE E INDICADORES DA EDUCAÇÃO SUPERIOR — DIGES"
+- Verificado via agent-browser: cabeçalho mostra "DIGES / Divisão de Gestão do ENADE e Indicadores da Educação Superior · PROE/UEMS"; rodapé mostra o nome completo correto. VLM confirmou.
+- Lint: 0 erros.
+
+Stage Summary:
+- Nome da DIGES corrigido em toda a aplicação (cabeçalho, rodapé, timbres de minuta, .docx, impressão).

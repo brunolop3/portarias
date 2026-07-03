@@ -223,7 +223,7 @@ export async function POST(req: NextRequest) {
     // ---- Timbre (topo) ----
     children.push(paraTimbre("UNIVERSIDADE ESTADUAL DE MATO GROSSO DO SUL", true));
     children.push(paraTimbre("PRÓ-REITORIA DE ENSINO — PROE", false));
-    children.push(paraTimbre("DIRETORIA DE GESTÃO DO ENSINO — DIGES", false));
+    children.push(paraTimbre("DIVISÃO DE GESTÃO DO ENADE E INDICADORES DA EDUCAÇÃO SUPERIOR — DIGES", false));
     children.push(spacer()); // linha em branco após o timbre (neutra)
 
     // ---- Título da Portaria ----
