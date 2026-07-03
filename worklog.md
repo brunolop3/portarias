@@ -383,3 +383,29 @@ Stage Summary:
 - Aplicação agora é instalável como PWA e funciona offline básico (shell cacheado).
 - Acessibilidade melhorada para navegação por teclado.
 - Próximas fases sugeridas: importação em lote via CSV, exportação PDF server-side, ARIA expandido em modais (focus trap), notificações push, sync em segundo plano.
+
+---
+Task ID: 13
+Agent: main (Z.ai Code)
+Task: Corrigir bug na exportação .docx a partir do modal de visualização (curso, grau e unidade ausentes) + implementar edição de portarias.
+
+Work Log:
+- BUG corrigido: exportação .docx a partir do modal de visualização do histórico gerava documento com curso vazio, grau errado ("bacharelado" hardcoded) e unidade ausente.
+  - Causa: PortariaViewerModal enviava `curso: ""`, `grau: "bacharelado"`, `unidadeUniversitaria: ""` hardcoded para o endpoint /api/cge/exportar-docx, pois o objeto PortariaGerada não contém esses campos (apenas comiteId).
+  - Fix: endpoint /api/cge/exportar-docx agora aceita `portariaId` opcional no body. Quando presente, busca a portaria + comitê do banco de dados e extrai curso, grau, unidade, membros e dados da constituição original automaticamente. Isso garante que o .docx sempre tenha os dados corretos, independente de quem chama.
+  - PortariaViewerModal atualizado para enviar apenas `{ portariaId: portaria.id }` em vez dos dados hardcoded.
+  - Testado via API: ementa agora mostra "Curso de Direito, bacharelado, ... Unidade Universitária de Dourados" tanto para Constituição quanto Alteração.
+  - Testado via agent-browser: botão .docx no modal de visualização baixa o arquivo com sucesso (toast "Arquivo .docx baixado.").
+- Nova feature: Edição de portarias (API + modal + UI).
+  - API PUT /api/cge/portarias/[id]: edita número, data, CI e composição de membros. Re-gera o texto da minuta automaticamente. Valida quórum. Se for Constituição, atualiza também a portaria de constituição do comitê. Se for Alteração e for a mais recente, atualiza os membros atuais do comitê. Registra auditoria.
+  - PortariaEditModal: modal com formulário (número, data, CI, membros dinâmicos com validação de quórum em tempo real). Botão "Salvar alterações" bloqueado enquanto quórum inválido.
+  - Botão "Editar" (ícone Edit, outline navy) adicionado na timeline do histórico de cada portaria.
+  - Botão "Excluir" agora tem texto visível (não apenas ícone) com borda vermelha para maior clareza.
+  - Função recarregar() adicionada para rebuscar dados do comitê após editar/excluir.
+  - Testado: editada portaria n.º 1.567 → 1.999, modal fechou e timeline atualizou com o novo número.
+
+Stage Summary:
+- Bug crítico do .docx corrigido — curso, grau e unidade agora aparecem corretamente na exportação a partir do modal de visualização.
+- Edição de portarias implementada end-to-end (API PUT + modal + botão Editar na UI).
+- Botão Excluir tornado mais visível (texto + borda vermelha).
+- Próximas fases sugeridas: continuar refinando, adicionar mais validações, importação em lote.

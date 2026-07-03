@@ -40,27 +40,15 @@ export function PortariaViewerModal({
   }
 
   async function baixarDocx() {
-    // Reconstroi um payload mínimo para o endpoint de .docx a partir do texto
-    // já gerado. Como o texto é a fonte de verdade, enviamos o que está salvo.
+    // Envia apenas o portariaId — o backend busca todos os dados (curso,
+    // grau, unidade, membros, config) do banco, garantindo que o .docx
+    // seja gerado com os dados corretos e completos.
     toast.loading("Gerando .docx...", { id: "docx-view" });
     try {
-      // O endpoint espera PayloadMinuta, mas re-gera o texto no servidor.
-      // Para evitar divergência, enviamos um payload que reproduz o mesmo texto.
       const r = await fetch("/api/cge/exportar-docx", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          tipo: portaria!.tipo,
-          numeroPortaria: portaria!.numeroPortaria,
-          dataPortaria: portaria!.dataPortaria,
-          curso: "",
-          grau: "bacharelado",
-          unidadeUniversitaria: "",
-          ciNumero: portaria!.ciNumero,
-          membros: portaria!.composicao,
-          // Para alteração, faltam dados da constituição original — o servidor
-          // re-gerará; aceitável para visualização.
-        }),
+        body: JSON.stringify({ portariaId: portaria!.id }),
       });
       if (!r.ok) throw new Error("Falha ao gerar .docx");
       const blob = await r.blob();

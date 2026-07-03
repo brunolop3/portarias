@@ -37,6 +37,7 @@ import { getConfig } from "@/lib/cge/config";
 import { ordenarMembrosParaTabela } from "@/lib/cge/quorum";
 import { dataPorExtenso } from "@/lib/cge/datas";
 import type { PayloadMinuta, Membro } from "@/lib/cge/types";
+import { db } from "@/lib/db";
 
 // --- Constantes de formatação (em twips; 1 cm = 567 twips) ----------------
 const FONT = "Times New Roman";
@@ -167,8 +168,54 @@ function tabelaMembros(membros: Membro[]): Table {
 // --- Rota ------------------------------------------------------------------
 export async function POST(req: NextRequest) {
   try {
-    const payload = (await req.json()) as PayloadMinuta;
-    const c = await getConfig();
+    const body = await req.json();
+    let payload: PayloadMinuta;
+
+    // Se receber portariaId, busca os dados completos da portaria + comitê
+    // do banco de dados. Isso garante que curso, grau e unidade estejam
+    // sempre corretos, mesmo quando o cliente não os envia (ex.: download
+    // a partir da visualização do histórico).
+    const cfg = await getConfig();
+    if (body.portariaId) {
+      const portaria = await db.portaria.findUnique({
+        where: { id: body.portariaId },
+        include: { comite: true },
+      });
+      if (!portaria) {
+        return NextResponse.json(
+          { error: "Portaria não encontrada." },
+          { status: 404 }
+        );
+      }
+      let composicao: Membro[] = [];
+      try {
+        composicao = JSON.parse(portaria.composicaoJson);
+      } catch {
+        composicao = [];
+      }
+      payload = {
+        tipo: portaria.tipo as PayloadMinuta["tipo"],
+        numeroPortaria: portaria.numeroPortaria,
+        dataPortaria: portaria.dataPortaria.toISOString(),
+        curso: portaria.comite.curso,
+        grau: portaria.comite.grau as "bacharelado" | "licenciatura",
+        unidadeUniversitaria: portaria.comite.unidadeUniversitaria,
+        ciNumero: portaria.ciNumero,
+        membros: composicao,
+        portariaConstituicaoNumero:
+          portaria.tipo === "Alteração"
+            ? portaria.comite.portariaConstituicaoNumero
+            : undefined,
+        portariaConstituicaoData:
+          portaria.tipo === "Alteração"
+            ? portaria.comite.portariaConstituicaoData.toISOString()
+            : undefined,
+        configuracao: cfg,
+      };
+    } else {
+      // Payload completo enviado pelo cliente (fluxo da Tela 4).
+      payload = { ...body, configuracao: cfg };
+    }
 
     const grauTexto = payload.grau === "bacharelado" ? "bacharelado" : "licenciatura";
     const children: (Paragraph | Table)[] = [];
@@ -196,24 +243,24 @@ export async function POST(req: NextRequest) {
     // ---- Preâmbulo (mesma formatação do corpo) ----
     children.push(
       paraCorpo(
-        `Por delegação de competência do Magnífico Reitor da UEMS, conforme ${c.portariaDelegacaoCompetencia},`
+        `Por delegação de competência do Magnífico Reitor da UEMS, conforme ${cfg.portariaDelegacaoCompetencia},`
       )
     );
     children.push(
       paraCorpo(
-        `O PRÓ-REITOR DE ENSINO DA UNIVERSIDADE ESTADUAL DE MATO GROSSO DO SUL, no uso de suas atribuições que lhes são conferidas pelo Regimento Geral e ${c.resolucaoCouni}, e,`
+        `O PRÓ-REITOR DE ENSINO DA UNIVERSIDADE ESTADUAL DE MATO GROSSO DO SUL, no uso de suas atribuições que lhes são conferidas pelo Regimento Geral e ${cfg.resolucaoCouni}, e,`
       )
     );
 
     // ---- CONSIDERANDO ----
     children.push(
       paraCorpo(
-        `CONSIDERANDO a Deliberação CE/CEPE-UEMS Nº 431, de ${dataPorExtenso(c.dataDeliberacao431)}, homologada pela ${c.resolucaoHomologacao431}, que aprovam a Política de Gestão do Exame Nacional dos Estudantes (Enade) na Universidade Estadual de Mato Grosso do Sul;`
+        `CONSIDERANDO a Deliberação CE/CEPE-UEMS Nº 431, de ${dataPorExtenso(cfg.dataDeliberacao431)}, homologada pela ${cfg.resolucaoHomologacao431}, que aprovam a Política de Gestão do Exame Nacional dos Estudantes (Enade) na Universidade Estadual de Mato Grosso do Sul;`
       )
     );
     children.push(
       paraCorpo(
-        `CONSIDERANDO a Deliberação CE/CEPE-UEMS Nº 432, de ${dataPorExtenso(c.dataDeliberacao432)}, homologada pela ${c.resolucaoHomologacao432}, que aprovam o Regulamento dos Comitês de Gestão do Exame Nacional dos Estudantes (Enade) na Universidade Estadual de Mato Grosso do Sul; e`
+        `CONSIDERANDO a Deliberação CE/CEPE-UEMS Nº 432, de ${dataPorExtenso(cfg.dataDeliberacao432)}, homologada pela ${cfg.resolucaoHomologacao432}, que aprovam o Regulamento dos Comitês de Gestão do Exame Nacional dos Estudantes (Enade) na Universidade Estadual de Mato Grosso do Sul; e`
       )
     );
     children.push(
@@ -285,8 +332,8 @@ export async function POST(req: NextRequest) {
 
     // ---- Assinatura (centralizada) ----
     children.push(spacer()); // separação neutra antes da assinatura
-    children.push(paraAssinatura(c.nomeSignatario.toUpperCase(), true)); // nome em negrito MAIÚSCULAS
-    children.push(paraAssinatura(c.cargoSignatario, false)); // cargo normal
+    children.push(paraAssinatura(cfg.nomeSignatario.toUpperCase(), true)); // nome em negrito MAIÚSCULAS
+    children.push(paraAssinatura(cfg.cargoSignatario, false)); // cargo normal
 
     const doc = new Document({
       sections: [
