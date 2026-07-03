@@ -19,9 +19,10 @@
   --color-ink-muted: #5B6472;
   --color-alert: #B3261E;
 
-  /* Mapeamento para o sistema shadcn — sobrescrevendo o tema padrão */
-  --color-background: var(--paper);
-  --color-foreground: var(--ink);
+  /* Mapeamento para o sistema shadcn — sobrescrevendo o tema padrão.
+     Usa var(--background) que é definido em :root e .dark. */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
   --font-sans: var(--font-inter);
   --font-mono: var(--font-plex-mono);
   --font-serif: var(--font-source-serif);
@@ -76,6 +77,13 @@
   --color-ink: #1A1D23;
   --color-ink-muted: #5B6472;
   --color-alert: #B3261E;
+
+  /* Tokens plain (lidos por var(--paper) etc. no @theme inline).
+     Necessário definir TANTO --color-* QUANTO os plain para que
+     --color-background: var(--paper) resolva corretamente. */
+  --paper: #F7F7F4;
+  --ink: #1A1D23;
+  --ink-muted: #5B6472;
 
   /* Fundo geral = paper (branco levemente quente). */
   --background: #F7F7F4;

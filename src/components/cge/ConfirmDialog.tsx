@@ -88,7 +88,7 @@ export function ConfirmProvider() {
 
   return (
     <Dialog open={aberto} onOpenChange={(o) => !o && fechar(false)}>
-      <DialogContent className="max-w-md p-0 overflow-hidden">
+      <DialogContent className="max-w-md p-0 overflow-hidden bg-background">
         <DialogHeader className="sr-only">
           <DialogTitle>{opts.titulo}</DialogTitle>
           <DialogDescription>{opts.descricao}</DialogDescription>

@@ -85,7 +85,7 @@ export function HelpOverlay() {
 
   return (
     <Dialog open={aberto} onOpenChange={(o) => setAberto(o)}>
-      <DialogContent className="max-w-lg p-0 overflow-hidden cge-anim-in">
+      <DialogContent className="max-w-lg p-0 overflow-hidden cge-anim-in bg-background">
         <DialogHeader className="sr-only">
           <DialogTitle>Atalhos de teclado</DialogTitle>
           <DialogDescription>Lista de atalhos disponíveis na aplicação.</DialogDescription>

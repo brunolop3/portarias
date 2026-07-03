@@ -136,7 +136,7 @@ ${blocos.join("\n")}
 
   return (
     <Dialog open={aberto} onOpenChange={(o) => !o && onFechar()}>
-      <DialogContent className="max-w-3xl max-h-[90vh] p-0 overflow-hidden flex flex-col gap-0">
+      <DialogContent className="max-w-3xl max-h-[90vh] p-0 overflow-hidden flex flex-col gap-0 bg-background">
         <DialogHeader className="px-5 py-4 border-b bg-[var(--color-paper)]" style={{ borderColor: "rgba(26,29,35,0.1)" }}>
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">

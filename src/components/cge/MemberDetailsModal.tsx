@@ -99,7 +99,7 @@ export function MemberDetailsModal({
 
   return (
     <Dialog open={aberto} onOpenChange={(o) => !o && onFechar()}>
-      <DialogContent className="max-w-2xl max-h-[85vh] p-0 overflow-hidden flex flex-col gap-0">
+      <DialogContent className="max-w-2xl max-h-[85vh] p-0 overflow-hidden flex flex-col gap-0 bg-background">
         <DialogHeader className="px-5 py-4 border-b bg-[var(--color-paper)]" style={{ borderColor: "rgba(26,29,35,0.1)" }}>
           <DialogTitle className="font-display text-lg text-[var(--color-ink)] flex items-center gap-2">
             <Users className="h-5 w-5 text-[var(--color-uems-navy)]" />

@@ -446,3 +446,21 @@ Work Log:
 
 Stage Summary:
 - Nome da DIGES corrigido em toda a aplicação (cabeçalho, rodapé, timbres de minuta, .docx, impressão).
+
+---
+Task ID: 16
+Agent: main (Z.ai Code)
+Task: Corrigir bug do modal de edição (e todos os modais) com fundo transparente.
+
+Work Log:
+- Bug encontrado: todos os modais (Dialog do Radix) estavam com fundo transparente (rgba(0,0,0,0)), fazendo o backdrop escuro aparecer atrás do texto, dificultando a leitura.
+  - Causa raiz: o @theme inline mapeava `--color-background: var(--paper)`, mas `--paper` (token plain, sem prefixo) não estava definido em :root (apenas --color-paper estava). Assim, `--color-background` resolvia para string vazia, e `bg-background` não aplicava nenhum fundo.
+  - Fix 1: adicionado `--paper`, `--ink`, `--ink-muted` (tokens plain) ao :root, além dos --color-* já existentes.
+  - Fix 2: mudado o mapeamento @theme inline de `--color-background: var(--paper)` para `--color-background: var(--background)` — mais direto e robusto, pois --background é definido explicitamente em :root e .dark.
+  - Fix 3: adicionado `bg-background` explicitamente em todos os DialogContent dos modais (PortariaEditModal, PortariaViewerModal, MemberDetailsModal, ConfirmDialog, HelpOverlay) como salvaguarda.
+  - Verificado: modal de edição agora tem fundo rgb(247,247,244) (paper) no light mode e rgb(15,20,25) (paper dark) no dark mode. VLM confirmou legibilidade em ambos os temas.
+- Lint: 0 erros. Dados de teste limpos.
+
+Stage Summary:
+- Bug crítico dos modais transparentes corrigido — todos os modais agora têm fundo opaco correto em light e dark.
+- Causa raiz (CSS var --paper não definida em :root) corrigida, beneficiando toda a aplicação.
