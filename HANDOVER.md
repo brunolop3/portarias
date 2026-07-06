@@ -32,8 +32,8 @@ etapas (Telas 1→4) dentro de um stepper.
 | Estilo | Tailwind CSS 4 + tokens institucionais UEMS |
 | UI | shadcn/ui (restilizado) + Lucide icons |
 | Estado | Zustand (cliente) |
-| Banco | Prisma ORM + SQLite (`db/custom.db`) |
-| IA (extração de CI) | z-ai-web-dev-sdk (VLM — backend only) |
+| Banco | Prisma ORM + PostgreSQL (Supabase) — veja `MIGRACAO_SUPABASE.md` |
+| IA (extração de CI) | Modelo de visão local via LM Studio (`LMSTUDIO_BASE_URL`) — backend only |
 | Export .docx | biblioteca `docx` |
 
 ## 3. Arquitetura de pastas
@@ -132,9 +132,18 @@ Para restaurar o padrão: botão "Restaurar padrão" na tela de Configurações
 
 Endpoint: `POST /api/cge/importar-ci` (multipart, campo `file`).
 
-Aceita PDF, imagem (jpg/png/webp/etc.) e .docx. Usa o VLM do z-ai-web-dev-sdk
-(`createVision` com `file_url` base64) para, em um único passo, ler o documento
-e extrair: número da CI, curso, unidade e lista de membros com função.
+Aceita PDF, imagem (jpg/png/webp/etc.) e .docx. Usa um modelo de visão local
+via LM Studio (servidor OpenAI-compatible em `LMSTUDIO_BASE_URL`, padrão
+`http://localhost:1234/v1`): imagens são enviadas como `image_url` base64;
+PDFs são rasterizados em imagens por página com `pdf-to-img` (modelos locais
+não leem PDF nativo); `.docx` tem o texto extraído antes com `mammoth`. Extrai
+número da CI, curso, unidade e lista de membros com função.
+
+**Requer LM Studio aberto** na máquina que roda a aplicação, com um modelo de
+visão carregado (ex.: Qwen2-VL, MiniCPM-V) e o servidor local iniciado — não é
+uma solução de produção "sempre disponível" a menos que uma máquina dedicada
+fique com o LM Studio rodando continuamente. Se o servidor não responder, o
+endpoint retorna erro e o usuário preenche manualmente.
 
 **Importante**: o resultado é sempre uma **sugestão**. A Tela 2 mostra os campos
 destacados como "importado da CI" e o usuário deve confirmar/corrigir antes de
@@ -177,13 +186,18 @@ elemento de assinatura visual da aplicação.
 ## 10. Como rodar localmente
 
 ```bash
-bun install           # instalar dependências
-bun run db:push       # sincronizar schema Prisma com o SQLite
+cp .env.example .env  # configurar DATABASE_URL/DIRECT_URL (Supabase) e LMSTUDIO_*
+bun install           # instalar dependências (ou npm install, se bun não disponível)
+bun run db:push       # sincronizar schema Prisma com o Postgres (Supabase)
 bun run dev           # iniciar em http://localhost:3000
 bun run lint          # checar qualidade do código
 ```
 
-O banco SQLite fica em `db/custom.db`. Não há依赖ência de DINF — roda autônomo.
+O banco é PostgreSQL via Supabase (veja `MIGRACAO_SUPABASE.md`). Não há
+dependência de DINF — roda autônomo. `LMSTUDIO_BASE_URL`/`LMSTUDIO_MODEL` são
+opcionais: sem o LM Studio rodando, a importação automática de CI fica
+desabilitada (preenchimento manual continua
+funcionando).
 
 ## 11. Fluxos principais
 

@@ -2,6 +2,9 @@
 
 # dependencies
 node_modules
+# projeto padroniza em bun.lock; package-lock.json é gerado só quando bun
+# não está disponível no ambiente (ex.: npm install como fallback)
+package-lock.json
 /.pnp
 .pnp.*
 .yarn/*

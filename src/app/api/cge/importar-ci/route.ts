@@ -1,24 +1,28 @@
 // POST /api/cge/importar-ci  (multipart/form-data)
 //   campo "file": PDF, imagem ou .docx da CI (Comunicação Interna)
 //
-// Estratégia: usa o VLM (createVision) com file_url base64. O modelo de visão
-// aceita PDF/DOCX/imagens e consegue, em um único passo, ler o documento e
-// estruturar os dados. Isso substitui OCR + extração de texto + LLM separados.
+// Estratégia: usa um modelo de visão local via LM Studio (servidor OpenAI-
+// compatible, LMSTUDIO_BASE_URL). PDFs são rasterizados em imagens (pdf-to-img)
+// antes do envio, já que modelos locais de visão não leem PDF nativamente.
+// .docx tem o texto extraído com "mammoth" e é enviado como texto simples.
 //
 // O resultado é sempre uma SUGESTÃO — o frontend mostra os campos destacados
 // como "importado da CI" e o usuário deve confirmar/corrigir antes de gerar
 // a minuta. A importação nunca bloqueia o preenchimento manual.
 import { NextRequest, NextResponse } from "next/server";
-import ZAI from "z-ai-web-dev-sdk";
 import type { ExtracaoCI } from "@/lib/cge/types";
 
 const MAX_BYTES = 10 * 1024 * 1024; // 10 MB
+const MAX_PDF_PAGES = 5; // CIs costumam ter 1 página; limite evita prompts gigantes
+const DOCX_MIME = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+const LMSTUDIO_BASE_URL = process.env.LMSTUDIO_BASE_URL || "http://localhost:1234/v1";
+const LMSTUDIO_MODEL = process.env.LMSTUDIO_MODEL || "local-model";
 
-// Mapeia extensão/MIME para o data URL usado pelo VLM.
+// Mapeia extensão para o MIME type quando o navegador não o informa.
 function mimeFromName(name: string): string {
   const lower = name.toLowerCase();
   if (lower.endsWith(".pdf")) return "application/pdf";
-  if (lower.endsWith(".docx")) return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+  if (lower.endsWith(".docx")) return DOCX_MIME;
   if (lower.endsWith(".doc")) return "application/msword";
   if (lower.endsWith(".png")) return "image/png";
   if (lower.endsWith(".jpg") || lower.endsWith(".jpeg")) return "image/jpeg";
@@ -61,6 +65,10 @@ Responda SOMENTE com um objeto JSON válido, sem texto adicional, no formato:
   "avisos": ["string - observações sobre dificuldades de leitura, se houver"]
 }`;
 
+type ContentPart =
+  | { type: "text"; text: string }
+  | { type: "image_url"; image_url: { url: string } };
+
 export async function POST(req: NextRequest) {
   try {
     const form = await req.formData();
@@ -77,25 +85,60 @@ export async function POST(req: NextRequest) {
 
     const mime = file.type || mimeFromName(file.name);
     const buf = Buffer.from(await file.arrayBuffer());
-    const b64 = buf.toString("base64");
-    const dataUrl = `data:${mime};base64,${b64}`;
 
-    // Usa o VLM com file_url (suporta PDF, DOCX e imagens nativamente).
-    const zai = await ZAI.create();
-    const resp = await zai.chat.completions.createVision({
-      messages: [
-        {
-          role: "user",
-          content: [
-            { type: "text", text: PROMPT_EXTRACAO },
-            { type: "file_url", file_url: { url: dataUrl } },
-          ],
-        },
-      ],
-      thinking: { type: "disabled" },
+    const contentParts: ContentPart[] = [{ type: "text", text: PROMPT_EXTRACAO }];
+
+    if (mime === DOCX_MIME) {
+      const mammoth = await import("mammoth");
+      const { value: texto } = await mammoth.extractRawText({ buffer: buf });
+      contentParts.push({
+        type: "text",
+        text: `\n\n--- CONTEÚDO DO DOCUMENTO ---\n${texto}`,
+      });
+    } else if (mime === "application/pdf") {
+      const { pdf } = await import("pdf-to-img");
+      const doc = await pdf(`data:application/pdf;base64,${buf.toString("base64")}`, {
+        scale: 2,
+      });
+      let pageCount = 0;
+      for await (const pageBuf of doc) {
+        if (pageCount >= MAX_PDF_PAGES) break;
+        contentParts.push({
+          type: "image_url",
+          image_url: { url: `data:image/png;base64,${pageBuf.toString("base64")}` },
+        });
+        pageCount++;
+      }
+    } else if (mime.startsWith("image/")) {
+      contentParts.push({
+        type: "image_url",
+        image_url: { url: `data:${mime};base64,${buf.toString("base64")}` },
+      });
+    } else {
+      // .txt e formatos não reconhecidos: tenta ler como texto puro.
+      contentParts.push({
+        type: "text",
+        text: `\n\n--- CONTEÚDO DO DOCUMENTO ---\n${buf.toString("utf-8")}`,
+      });
+    }
+
+    const lmResp = await fetch(`${LMSTUDIO_BASE_URL}/chat/completions`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: LMSTUDIO_MODEL,
+        messages: [{ role: "user", content: contentParts }],
+        temperature: 0,
+      }),
     });
 
-    const content = resp.choices?.[0]?.message?.content ?? "";
+    if (!lmResp.ok) {
+      const errText = await lmResp.text();
+      throw new Error(`LM Studio retornou ${lmResp.status}: ${errText}`);
+    }
+
+    const lmData = await lmResp.json();
+    const content: string = lmData.choices?.[0]?.message?.content ?? "";
 
     // O modelo pode devolver o JSON dentro de ```json ... ```. Limpa.
     let jsonStr = content.trim();
@@ -114,9 +157,9 @@ export async function POST(req: NextRequest) {
     } catch {
       // Se não veio JSON válido, retorna como aviso + texto bruto.
       return NextResponse.json({
-        ciNumero: null,
-        curso: null,
-        unidadeUniversitaria: null,
+        ciNumero: undefined,
+        curso: undefined,
+        unidadeUniversitaria: undefined,
         membros: [],
         textoExtraido: content,
         avisos: [
