@@ -30,6 +30,11 @@ Este guia explica como migrar o banco de dados do SQLite local para o Supabase (
    postgresql://postgres.[PROJETO]:[SENHA]@aws-0-[REGIAO].pooler.supabase.com:6543/postgres
    ```
 6. Substitua `[SENHA]` pela senha definida no passo 1
+7. Acrescente `?pgbouncer=true` ao final da URL — o pooler em modo *transaction*
+   (porta 6543) não suporta prepared statements, e o Prisma Client falha com
+   `prepared statement "s1" already exists` sem esse parâmetro
+8. Anote também a mesma URL trocando a porta para `5432` — ela será usada como
+   `DIRECT_URL` (passo 3), necessária só para migrations
 
 ### 3. Configurar o arquivo `.env`
 
@@ -37,18 +42,25 @@ Este guia explica como migrar o banco de dados do SQLite local para o Supabase (
    ```bash
    cp .env.example .env
    ```
-2. Edite o `.env` e cole sua string de conexão completa:
+2. Edite o `.env` e cole duas variáveis:
    ```
-   DATABASE_URL="postgresql://postgres.abc123:sua_senha@aws-0-sa-east-1.pooler.supabase.com:6543/postgres"
+   DATABASE_URL="postgresql://postgres.abc123:sua_senha@aws-0-sa-east-1.pooler.supabase.com:6543/postgres?pgbouncer=true"
+   DIRECT_URL="postgresql://postgres.abc123:sua_senha@aws-0-sa-east-1.pooler.supabase.com:5432/postgres"
    ```
+   - `DATABASE_URL` (pooler, porta 6543) é usada pela aplicação em runtime
+   - `DIRECT_URL` (porta 5432, sem modo transaction) é usada só pelo
+     `prisma db push`/`migrate`, que precisa de locks de sessão que o
+     pooler transaction não suporta — sem ela, `db push` trava indefinidamente
 
 ### 4. Confirmar o provider no schema
 
-O `prisma/schema.prisma` já está configurado para PostgreSQL:
+O `prisma/schema.prisma` já está configurado para PostgreSQL, com `directUrl`
+apontando para a conexão direta usada só em migrations:
 ```prisma
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 ```
 

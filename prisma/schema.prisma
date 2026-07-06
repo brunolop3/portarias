@@ -9,8 +9,12 @@ generator client {
 datasource db {
   // Supabase usa PostgreSQL. Para desenvolvimento local com SQLite,
   // troque por "sqlite" e use DATABASE_URL="file:./dev.db".
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  // Conexão direta (sem pooler) exigida pelo Prisma Migrate/db push,
+  // já que o pooler em modo transaction (porta 6543) não suporta os
+  // locks de sessão necessários para migrations.
+  directUrl = env("DIRECT_URL")
 }
 
 // ---------------------------------------------------------------------------
