@@ -7,7 +7,9 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  // Supabase usa PostgreSQL. Para desenvolvimento local com SQLite,
+  // troque por "sqlite" e use DATABASE_URL="file:./dev.db".
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
