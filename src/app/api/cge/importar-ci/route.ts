@@ -1,10 +1,18 @@
 // POST /api/cge/importar-ci  (multipart/form-data)
 //   campo "file": PDF, imagem ou .docx da CI (Comunicação Interna)
 //
-// Estratégia: usa um modelo de visão local via LM Studio (servidor OpenAI-
-// compatible, LMSTUDIO_BASE_URL). PDFs são rasterizados em imagens (pdf-to-img)
-// antes do envio, já que modelos locais de visão não leem PDF nativamente.
-// .docx tem o texto extraído com "mammoth" e é enviado como texto simples.
+// Estratégia: usa um modelo de visão via servidor OpenAI-compatible. Duas
+// opções, escolhidas em runtime:
+//   - OpenRouter (nuvem, precisa de OPENROUTER_API_KEY) — funciona em
+//     qualquer hospedagem, inclusive Vercel.
+//   - LM Studio (local, LMSTUDIO_BASE_URL) — grátis e ilimitado, mas só
+//     funciona enquanto o LM Studio estiver aberto na máquina que roda a app.
+// Se OPENROUTER_API_KEY estiver definida, ela tem prioridade; senão cai para
+// o LM Studio local.
+//
+// PDFs são rasterizados em imagens (pdf-to-img) antes do envio, já que
+// modelos de visão não leem PDF nativamente neste formato de API. .docx tem
+// o texto extraído com "mammoth" e é enviado como texto simples.
 //
 // O resultado é sempre uma SUGESTÃO — o frontend mostra os campos destacados
 // como "importado da CI" e o usuário deve confirmar/corrigir antes de gerar
@@ -15,6 +23,9 @@ import type { ExtracaoCI } from "@/lib/cge/types";
 const MAX_BYTES = 10 * 1024 * 1024; // 10 MB
 const MAX_PDF_PAGES = 5; // CIs costumam ter 1 página; limite evita prompts gigantes
 const DOCX_MIME = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+
+const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
+const OPENROUTER_MODEL = process.env.OPENROUTER_MODEL || "google/gemma-4-26b-a4b-it:free";
 const LMSTUDIO_BASE_URL = process.env.LMSTUDIO_BASE_URL || "http://localhost:1234/v1";
 const LMSTUDIO_MODEL = process.env.LMSTUDIO_MODEL || "local-model";
 
@@ -122,23 +133,30 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const lmResp = await fetch(`${LMSTUDIO_BASE_URL}/chat/completions`, {
+    const baseUrl = OPENROUTER_API_KEY ? "https://openrouter.ai/api/v1" : LMSTUDIO_BASE_URL;
+    const model = OPENROUTER_API_KEY ? OPENROUTER_MODEL : LMSTUDIO_MODEL;
+    const providerNome = OPENROUTER_API_KEY ? "OpenRouter" : "LM Studio";
+
+    const visionResp = await fetch(`${baseUrl}/chat/completions`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...(OPENROUTER_API_KEY ? { Authorization: `Bearer ${OPENROUTER_API_KEY}` } : {}),
+      },
       body: JSON.stringify({
-        model: LMSTUDIO_MODEL,
+        model,
         messages: [{ role: "user", content: contentParts }],
         temperature: 0,
       }),
     });
 
-    if (!lmResp.ok) {
-      const errText = await lmResp.text();
-      throw new Error(`LM Studio retornou ${lmResp.status}: ${errText}`);
+    if (!visionResp.ok) {
+      const errText = await visionResp.text();
+      throw new Error(`${providerNome} retornou ${visionResp.status}: ${errText}`);
     }
 
-    const lmData = await lmResp.json();
-    const content: string = lmData.choices?.[0]?.message?.content ?? "";
+    const visionData = await visionResp.json();
+    const content: string = visionData.choices?.[0]?.message?.content ?? "";
 
     // O modelo pode devolver o JSON dentro de ```json ... ```. Limpa.
     let jsonStr = content.trim();

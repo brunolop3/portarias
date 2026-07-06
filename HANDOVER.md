@@ -33,7 +33,7 @@ etapas (Telas 1→4) dentro de um stepper.
 | UI | shadcn/ui (restilizado) + Lucide icons |
 | Estado | Zustand (cliente) |
 | Banco | Prisma ORM + PostgreSQL (Supabase) — veja `MIGRACAO_SUPABASE.md` |
-| IA (extração de CI) | Modelo de visão local via LM Studio (`LMSTUDIO_BASE_URL`) — backend only |
+| IA (extração de CI) | OpenRouter (`OPENROUTER_API_KEY`, nuvem) com fallback para LM Studio local — backend only |
 | Export .docx | biblioteca `docx` |
 
 ## 3. Arquitetura de pastas
@@ -132,18 +132,21 @@ Para restaurar o padrão: botão "Restaurar padrão" na tela de Configurações
 
 Endpoint: `POST /api/cge/importar-ci` (multipart, campo `file`).
 
-Aceita PDF, imagem (jpg/png/webp/etc.) e .docx. Usa um modelo de visão local
-via LM Studio (servidor OpenAI-compatible em `LMSTUDIO_BASE_URL`, padrão
-`http://localhost:1234/v1`): imagens são enviadas como `image_url` base64;
-PDFs são rasterizados em imagens por página com `pdf-to-img` (modelos locais
-não leem PDF nativo); `.docx` tem o texto extraído antes com `mammoth`. Extrai
+Aceita PDF, imagem (jpg/png/webp/etc.) e .docx. Usa um modelo de visão via
+servidor OpenAI-compatible: imagens são enviadas como `image_url` base64;
+PDFs são rasterizados em imagens por página com `pdf-to-img` (o formato não
+lê PDF nativo); `.docx` tem o texto extraído antes com `mammoth`. Extrai
 número da CI, curso, unidade e lista de membros com função.
 
-**Requer LM Studio aberto** na máquina que roda a aplicação, com um modelo de
-visão carregado (ex.: Qwen2-VL, MiniCPM-V) e o servidor local iniciado — não é
-uma solução de produção "sempre disponível" a menos que uma máquina dedicada
-fique com o LM Studio rodando continuamente. Se o servidor não responder, o
-endpoint retorna erro e o usuário preenche manualmente.
+**Provedor escolhido em runtime**: se `OPENROUTER_API_KEY` estiver definida,
+usa o [OpenRouter](https://openrouter.ai) (nuvem — funciona em qualquer
+hospedagem, inclusive Vercel), modelo padrão `google/gemma-4-26b-a4b-it:free`
+(gratuito, testado e validado para esta tarefa). Sem a chave, cai para o
+LM Studio local (`LMSTUDIO_BASE_URL`, padrão `http://localhost:1234/v1`) —
+grátis e ilimitado, mas só funciona enquanto o LM Studio estiver aberto na
+máquina que roda a aplicação (não serve para produção "sempre disponível"
+sem uma máquina dedicada rodando o servidor continuamente). Se nenhum dos
+dois responder, o endpoint retorna erro e o usuário preenche manualmente.
 
 **Importante**: o resultado é sempre uma **sugestão**. A Tela 2 mostra os campos
 destacados como "importado da CI" e o usuário deve confirmar/corrigir antes de
@@ -186,7 +189,7 @@ elemento de assinatura visual da aplicação.
 ## 10. Como rodar localmente
 
 ```bash
-cp .env.example .env  # configurar DATABASE_URL/DIRECT_URL (Supabase) e LMSTUDIO_*
+cp .env.example .env  # configurar DATABASE_URL/DIRECT_URL (Supabase) e OPENROUTER_API_KEY/LMSTUDIO_*
 bun install           # instalar dependências (ou npm install, se bun não disponível)
 bun run db:push       # sincronizar schema Prisma com o Postgres (Supabase)
 bun run dev           # iniciar em http://localhost:3000
@@ -194,10 +197,9 @@ bun run lint          # checar qualidade do código
 ```
 
 O banco é PostgreSQL via Supabase (veja `MIGRACAO_SUPABASE.md`). Não há
-dependência de DINF — roda autônomo. `LMSTUDIO_BASE_URL`/`LMSTUDIO_MODEL` são
-opcionais: sem o LM Studio rodando, a importação automática de CI fica
-desabilitada (preenchimento manual continua
-funcionando).
+dependência de DINF — roda autônomo. `OPENROUTER_API_KEY`/`LMSTUDIO_*` são
+opcionais: sem nenhum dos dois configurado, a importação automática de CI
+fica desabilitada (preenchimento manual continua funcionando).
 
 ## 11. Fluxos principais
 
